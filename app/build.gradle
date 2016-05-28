@@ -7,22 +7,20 @@ model {
 
         defaultConfig {
             applicationId = "com.forensic.unipg.silenceaudiorecording"
-            minSdkVersion.apiLevel = 7
+            minSdkVersion.apiLevel = 17
             targetSdkVersion.apiLevel = 23
         }
         /*
          * native build settings: taking default for almost everything
          */
         ndk {
-            moduleName = 'SilenceAudioRecordingLib'
-            platformVersion = 19
+            moduleName = 'SilenceAudioRecordingNative'
+            platformVersion = 15
             toolchain = 'clang'
-            CFlags.addAll(['-Wall'])
+            CFlags.addAll(['-Wall', "-g"] )
             cppFlags.addAll( ["-pedantic" , "-pthread", "-pedantic" ] )
-            cppFlags.addAll( [ "-ldl", "-lz",  "-llog" ] )
-            cppFlags.add( "-lOpenSLES" )
-            cppFlags.add( "-std=c++14" )
-            cppFlags.add( "-O2" )
+            cppFlags.add( "-std=c++11" )
+            ldLibs.addAll(['android', 'z', 'log', 'OpenSLES'])
             cppFlags.add( "-I${file("src/main/jni").absolutePath}".toString() )
             cppFlags.add( "-I${file("src/main/jni/include").absolutePath}".toString() )
             stl = "gnustl_static"

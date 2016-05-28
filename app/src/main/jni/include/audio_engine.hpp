@@ -3,9 +3,7 @@
 //
 #pragma once
 #include <SLES/OpenSLES.h>
-#include <SLES/OpenSLES_Platform.h>
 #include <SLES/OpenSLES_Android.h>
-#include <SLES/OpenSLES_AndroidMetadata.h>
 #include <SLES/OpenSLES_AndroidConfiguration.h>
 #include <assert.h>
 #include <vector>
@@ -32,6 +30,11 @@ public:
     bool have_errors() const
     {
         return m_errors.size() != 0;
+    }
+
+    size_t count_errors() const
+    {
+        return m_errors.size();
     }
 
 protected:
@@ -65,7 +68,7 @@ class es_engine : public es_objs_errors
     bool init()
     {
         //create engine
-        int result = slCreateEngine(&m_engine_obj, 0, NULL, 0, NULL, NULL);
+        SLuint32 result = slCreateEngine(&m_engine_obj, 0, nullptr, 0, nullptr, nullptr);
 
         //errors?
         if(result != SL_RESULT_SUCCESS)
@@ -186,10 +189,32 @@ public:
                 push_error("Bits per sample not supported");
                 return false;
         }
+        //samples per sec type
+        SLuint32 es_samples_per_sec_type = 0 ;
+        //samples per sec
+        switch(info.m_samples_per_sec)
+        {
+
+            case 8000:   es_samples_per_sec_type = SL_SAMPLINGRATE_8;     break;
+            case 11025:  es_samples_per_sec_type = SL_SAMPLINGRATE_11_025;break;
+            case 16000:  es_samples_per_sec_type = SL_SAMPLINGRATE_16;    break;
+            case 22050:  es_samples_per_sec_type = SL_SAMPLINGRATE_22_05; break;
+            case 24000:  es_samples_per_sec_type = SL_SAMPLINGRATE_24;    break;
+            case 32000:  es_samples_per_sec_type = SL_SAMPLINGRATE_32;    break;
+            case 44100:  es_samples_per_sec_type = SL_SAMPLINGRATE_44_1;  break;
+            case 48000:  es_samples_per_sec_type = SL_SAMPLINGRATE_48;    break;
+            case 64000:  es_samples_per_sec_type = SL_SAMPLINGRATE_64;    break;
+            case 88200:  es_samples_per_sec_type = SL_SAMPLINGRATE_88_2;  break;
+            case 96000:  es_samples_per_sec_type = SL_SAMPLINGRATE_96;    break;
+            case 192000: es_samples_per_sec_type = SL_SAMPLINGRATE_192;   break;
+            default:
+                push_error("Samples per second not supported");
+                return false;
+        }
         //save mata info
         m_info = info;
         //values
-        int result = 0;
+        SLuint32 result = 0;
 
         SLDataLocator_IODevice loc_dev =
                 {
@@ -208,14 +233,14 @@ public:
         SLDataLocator_AndroidSimpleBufferQueue loc_bq =
                 {
                         SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,
-                        info.m_count_queue
+                        m_info.m_count_queue
                 };
 
         SLDataFormat_PCM format_pcm =
                 {
                         SL_DATAFORMAT_PCM,
-                        info.m_channels,
-                        info.m_samples_per_sec,
+                        m_info.m_channels,
+                        es_samples_per_sec_type,
                         es_bits_type,
                         es_bits_type,
                         SL_SPEAKER_FRONT_CENTER,
@@ -298,7 +323,7 @@ public:
     bool is_valid() const
     {
         return m_recorder_obj != nullptr  &&
-               m_record_itf != nullptr   &&
+               m_record_itf   != nullptr   &&
                m_recorder_buffer_queue_itf != nullptr;
     }
 
