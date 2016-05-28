@@ -5,6 +5,13 @@ import android.os.Bundle;
 
 public class SilenceAudioRecording extends AppCompatActivity {
 
+    static {
+
+    }
+
+    native void nativeInit();
+    native void nativeClose();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

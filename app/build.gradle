@@ -1,26 +1,71 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.model.application'
 
-android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+model {
+    android {
+        compileSdkVersion = 23
+        buildToolsVersion = '23.0.3'
 
-    defaultConfig {
-        applicationId "com.forensic.unipg.silenceaudiorecording"
-        minSdkVersion 19
-        targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        defaultConfig {
+            applicationId = "com.forensic.unipg.silenceaudiorecording"
+            minSdkVersion.apiLevel = 7
+            targetSdkVersion.apiLevel = 23
+        }
+        /*
+         * native build settings: taking default for almost everything
+         */
+        ndk {
+            moduleName = 'SilenceAudioRecordingLib'
+            toolchain = 'clang'
+            CFlags.addAll(['-Wall'])
+            cppFlags.add( "-pedantic" )
+            cppFlags.add( "-pthread" )
+            cppFlags.add( "-pedantic" )
+            cppFlags.add( "-ldl" )
+            cppFlags.add( "-lz" )
+            cppFlags.add( "-llog" )
+            cppFlags.add( "-std=c++14" )
+            cppFlags.add( "-O2" )
+            cppFlags.add( "-I${file("src/main/jni").absolutePath}".toString() )
+            cppFlags.add( "-I${file("src/main/jni/include").absolutePath}".toString() )
+            stl = "gnustl_static"
+        }
+        buildTypes {
+            release {
+                minifyEnabled = false
+                proguardFiles.add(file('proguard-rules.txt'))
+            }
+        }
+        productFlavors {
+            // for detailed abiFilter descriptions, refer to "Supported ABIs" @
+            // https://developer.android.com/ndk/guides/abis.html#sa
+            create("arm") {
+                ndk.abiFilters.add("armeabi")
+            }
+            create("arm7") {
+                ndk.abiFilters.add("armeabi-v7a")
+            }
+            create("arm8") {
+                ndk.abiFilters.add("arm64-v8a")
+            }
+            create("x86") {
+                ndk.abiFilters.add("x86")
+            }
+            create("x86-64") {
+                ndk.abiFilters.add("x86_64")
+            }
+            create("mips") {
+                ndk.abiFilters.add("mips")
+            }
+            create("mips-64") {
+                ndk.abiFilters.add("mips64")
+            }
+            // To include all cpu architectures, leaves abiFilters empty
+            create("all")
         }
     }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.4.0'
 }
