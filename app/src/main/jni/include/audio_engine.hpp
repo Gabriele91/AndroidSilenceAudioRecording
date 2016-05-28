@@ -161,6 +161,72 @@ public:
         }
     };
 
+    struct es_buffer_read
+    {
+        size_t                 m_idx;
+        size_t                 m_one_size;
+        size_t                 m_n_buffer;
+        std::vector < int8_t > m_buffer;
+
+        void init (const es_input_meta_info& info,size_t seconds = 1)
+        {
+            m_idx = 0;
+            m_one_size = info.m_samples_per_sec
+                         * ( info.m_bits_per_sample / 8 )
+                         * info.m_channels
+                         * seconds;
+            m_n_buffer = info.m_count_queue;
+            m_buffer.resize( m_one_size * m_n_buffer, 0 );
+        };
+
+        void reset()
+        {
+            m_idx = 0;
+        }
+
+        size_t size() const
+        {
+            return m_n_buffer;
+        }
+
+        size_t index() const
+        {
+            return m_idx;
+        }
+
+        int8_t* current()
+        {
+            return &m_buffer[m_idx*m_one_size];
+        }
+
+        int8_t* get(size_t i)
+        {
+            return &m_buffer[i*m_one_size];
+        }
+
+        void next()
+        {
+            //next
+            ++m_idx;
+            //circle
+            if(m_idx >= m_n_buffer) m_idx = 0;
+        }
+
+        void enqueue(SLAndroidSimpleBufferQueueItf bq)
+        {
+            (*bq)->Enqueue(bq,current(),m_one_size);
+            next();
+        }
+
+        void enqueue_all(SLAndroidSimpleBufferQueueItf bq)
+        {
+            for(int i=0;i!=m_n_buffer;++i)
+            {
+                (*bq)->Enqueue(bq,get(i),m_one_size);
+            }
+        }
+    };
+
     //null ptr
     es_input_device()
     {
@@ -172,6 +238,7 @@ public:
         m_info.m_samples_per_sec = 0;
         m_info.m_bits_per_sample = 0;
     }
+
 
     bool init(const es_engine& engine,
               const es_input_meta_info& info)
@@ -253,13 +320,15 @@ public:
                         &format_pcm
                 };
 
-        const SLInterfaceID id[1] =
+        const SLInterfaceID id[2] =
                 {
-                        SL_IID_ANDROIDSIMPLEBUFFERQUEUE
+                        SL_IID_ANDROIDSIMPLEBUFFERQUEUE,
+                        SL_IID_ANDROIDCONFIGURATION
                 };
 
-        const SLboolean req[1] =
+        const SLboolean req[2] =
                 {
+                        SL_BOOLEAN_TRUE,
                         SL_BOOLEAN_TRUE
                 };
 
@@ -268,7 +337,7 @@ public:
                                                          &m_recorder_obj,
                                                          &audio_src,
                                                          &audio_snk,
-                                                         1,
+                                                         2,
                                                          id,
                                                          req);
         //errors?
@@ -278,6 +347,25 @@ public:
             return false;
         }
 
+        // get the android configuration interface which is explicit
+        result = (*m_recorder_obj)->GetInterface(m_recorder_obj,
+                                                 SL_IID_ANDROIDCONFIGURATION,
+                                                 (void*)&m_android_config);
+
+        //errors?
+        if(result != SL_RESULT_SUCCESS)
+        {
+            push_error("Can't realize audio recorder");
+            return false;
+        }
+
+        //use mic
+        if(!force_use_recognition())
+        {
+            return false;
+        }
+
+        //realize recorder
         result = (*m_recorder_obj)->Realize(m_recorder_obj,  SL_BOOLEAN_FALSE);
 
         //errors?
@@ -342,7 +430,7 @@ public:
      *   }
      * */
 
-    bool set_callback(void(* callback)(SLAndroidSimpleBufferQueueItf bq, void *context),void* context)
+    bool set_callback(void(* callback)(SLAndroidSimpleBufferQueueItf, void*),void* context)
     {
 
         int result = (*m_recorder_buffer_queue_itf)->RegisterCallback
@@ -353,7 +441,7 @@ public:
                 );
 
         //errors?
-        if(SL_RESULT_PARAMETER_INVALID == result)
+        if(result != SL_RESULT_SUCCESS)
         {
             push_error("Can't set audio recorder callback");
             return false;
@@ -370,7 +458,7 @@ public:
         int result = (*m_record_itf)->SetRecordState(m_record_itf,SL_RECORDSTATE_RECORDING);
 
         //errors?
-        if(SL_RESULT_PARAMETER_INVALID == result)
+        if(result != SL_RESULT_SUCCESS)
         {
             push_error("Can't start the audio recording");
             return false;
@@ -387,7 +475,7 @@ public:
         int result = (*m_record_itf)->SetRecordState(m_record_itf,SL_RECORDSTATE_STOPPED);
 
         //errors?
-        if(SL_RESULT_PARAMETER_INVALID == result)
+        if(result != SL_RESULT_SUCCESS)
         {
             push_error("Can't stop the audio recording");
             return false;
@@ -404,7 +492,7 @@ public:
         int result = (*m_record_itf)->SetRecordState(m_record_itf,SL_RECORDSTATE_STOPPED);
 
         //errors?
-        if(SL_RESULT_PARAMETER_INVALID == result)
+        if(result != SL_RESULT_SUCCESS)
         {
             push_error("Can't pause the audio recording");
             return false;
@@ -419,12 +507,72 @@ public:
         return m_info;
     }
 
+    //get queue
+    SLAndroidSimpleBufferQueueItf get_raw_queue() const
+    {
+        return m_recorder_buffer_queue_itf;
+    }
+
+    //enqueue
+    void enqueue_all(es_buffer_read& buffer)
+    {
+        buffer.enqueue_all(m_recorder_buffer_queue_itf);
+    }
+
+    void enqueue(es_buffer_read& buffer)
+    {
+        buffer.enqueue(m_recorder_buffer_queue_itf);
+    }
+
 private:
 
     SLObjectItf m_recorder_obj;
     SLRecordItf m_record_itf;
+    SLAndroidConfigurationItf m_android_config;
     SLAndroidSimpleBufferQueueItf m_recorder_buffer_queue_itf;
 
     //meta info
     es_input_meta_info m_info;
+
+    //force use mic
+    bool force_use_recognition()
+    {
+        // use the configuration interface to configure the recorder before it's realized
+        SLuint32 preset_value = SL_ANDROID_RECORDING_PRESET_VOICE_RECOGNITION;
+        SLuint32 result = (*m_android_config)->SetConfiguration(m_android_config,
+                                                                SL_ANDROID_KEY_RECORDING_PRESET,
+                                                                &preset_value,
+                                                                sizeof(SLuint32));
+        //errors?
+        if(result != SL_RESULT_SUCCESS)
+        {
+            push_error("Can't force use the mic to audio recording");
+            return false;
+        }
+
+        //test value to 0
+        SLuint32 get_preset_value = SL_ANDROID_RECORDING_PRESET_NONE;
+        //size
+        SLuint32 preset_size = 2*sizeof(SLuint32); // intentionally too big
+        //get info
+        result = (*m_android_config)->GetConfiguration(m_android_config,
+                                                       SL_ANDROID_KEY_RECORDING_PRESET,
+                                                       &preset_size,
+                                                       (void*)&get_preset_value);
+        //errors?
+        if(result != SL_RESULT_SUCCESS)
+        {
+            push_error("Can't get android configuration (audio recording)");
+            return false;
+        }
+
+        //test
+        if (preset_value != get_preset_value)
+        {
+            push_error("Error retrieved recording preset  (audio recording)");
+            return false;
+        }
+
+        return true;
+    }
 };

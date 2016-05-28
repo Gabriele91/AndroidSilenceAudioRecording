@@ -27,6 +27,10 @@ public class SilenceAudioRecording extends AppCompatActivity {
                 Log.e("AudioEngine",error);
             }
         }
+        else
+        {
+            mAudioEngine.startRecording();
+        }
     }
 
     //attribute
