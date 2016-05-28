@@ -15,14 +15,12 @@ model {
          */
         ndk {
             moduleName = 'SilenceAudioRecordingLib'
+            platformVersion = 19
             toolchain = 'clang'
             CFlags.addAll(['-Wall'])
-            cppFlags.add( "-pedantic" )
-            cppFlags.add( "-pthread" )
-            cppFlags.add( "-pedantic" )
-            cppFlags.add( "-ldl" )
-            cppFlags.add( "-lz" )
-            cppFlags.add( "-llog" )
+            cppFlags.addAll( ["-pedantic" , "-pthread", "-pedantic" ] )
+            cppFlags.addAll( [ "-ldl", "-lz",  "-llog" ] )
+            cppFlags.add( "-lOpenSLES" )
             cppFlags.add( "-std=c++14" )
             cppFlags.add( "-O2" )
             cppFlags.add( "-I${file("src/main/jni").absolutePath}".toString() )

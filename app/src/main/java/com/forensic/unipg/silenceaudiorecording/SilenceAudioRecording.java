@@ -5,12 +5,10 @@ import android.os.Bundle;
 
 public class SilenceAudioRecording extends AppCompatActivity {
 
-    static {
-
+    static
+    {
+        System.load("SilenceAudioRecordingLib");
     }
-
-    native void nativeInit();
-    native void nativeClose();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
