@@ -37,7 +37,7 @@ extern "C"
 
     JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_start( JNIEnv *env, jclass clazz )
     {
-        java_global::client.init(&test_rak_callback,"...");
+        java_global::client.init(&test_rak_callback,"95.250.196.2");
         java_global::client.loop();
     }
     JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_stop( JNIEnv *env, jclass clazz )

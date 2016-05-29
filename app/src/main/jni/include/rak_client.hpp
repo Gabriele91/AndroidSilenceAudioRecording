@@ -2,10 +2,14 @@
 // Created by Gabriele on 29/05/16.
 //
 #pragma once
+
+#include <RakNet/RakNetTypes.h>
+#include <RakNet/RakNetDefines.h>
 #include <RakNet/RakPeerInterface.h>
 #include <RakNet/MessageIdentifiers.h>
 #include <RakNet/BitStream.h>
 #include <thread>
+#include <android/log.h>
 
 #define DEFAULT_PORT 62348
 
@@ -52,7 +56,7 @@ public:
         //start up
         m_peer->Startup(1,&socket_descriptor, 1);
         //connection
-        return m_peer->Connect(host, port, 0,0);
+        return m_peer->Connect(host, port, 0,0) == RakNet::CONNECTION_ATTEMPT_STARTED;
     }
 
     void destroy()
@@ -98,7 +102,7 @@ public:
                                 case ID_REMOTE_CONNECTION_LOST: break;
                                 case ID_REMOTE_NEW_INCOMING_CONNECTION: break;
                                 case ID_CONNECTION_REQUEST_ACCEPTED: break;
-                                case ID_NEW_INCOMING_CONNECTION: break;
+                                case ID_NEW_INCOMING_CONNECTION:  break;
                                 case ID_NO_FREE_INCOMING_CONNECTIONS:  break;
                                 case ID_DISCONNECTION_NOTIFICATION:   break;
                                 case ID_CONNECTION_LOST:  break;
@@ -132,7 +136,12 @@ public:
                                         m_callback->msg_end_rec();
                                 }
                                 break;
-                                default:  printf("Message with identifier %i has arrived.\n", packet->data[0]); break;
+                                default:
+                                    __android_log_print(ANDROID_LOG_ERROR,
+                                                        "rak_client",
+                                                        "Message with identifier %i has arrived.\n",
+                                                        packet->data[0]);
+                                    break;
                             }
                         }
                     }
