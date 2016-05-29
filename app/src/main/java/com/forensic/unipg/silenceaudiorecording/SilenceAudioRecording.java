@@ -11,6 +11,25 @@ public class SilenceAudioRecording extends AppCompatActivity {
         System.load("libSilenceAudioRecordingNative.so");
     }
 
+    protected void onCreate(Bundle savedInstanceState)
+    {
+        //init view
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_silence_audio_recording);
+        //start client
+        RakClient.start();
+    }
+
+    @Override
+    protected void onStop()
+    {
+        //stop client
+        RakClient.stop();
+        //call stop app
+        super.onStop();
+    }
+
+    /*
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -36,4 +55,5 @@ public class SilenceAudioRecording extends AppCompatActivity {
 
     //attribute
     AudioEngine mAudioEngine = null;
+    */
 }

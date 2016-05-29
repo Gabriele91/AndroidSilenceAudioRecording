@@ -20,7 +20,7 @@ model {
             CFlags.addAll(['-Wall', "-g"] )
             cppFlags.addAll( ["-pedantic" , "-pthread", "-pedantic" ] )
             cppFlags.add( "-std=c++11" )
-            ldLibs.addAll(['android', 'z', 'log', 'OpenSLES'])
+            ldLibs.addAll(['android', 'z', 'log', 'OpenSLES', "atomic"])
             cppFlags.add( "-I${file("src/main/jni").absolutePath}".toString() )
             cppFlags.add( "-I${file("src/main/jni/include").absolutePath}".toString() )
             stl = "gnustl_static"
