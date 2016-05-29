@@ -29,6 +29,16 @@ public:
     {
 
     }
+
+    virtual void new_connection()
+    {
+
+    }
+
+    virtual void end_connection()
+    {
+
+    }
 }
 test_rak_callback;
 

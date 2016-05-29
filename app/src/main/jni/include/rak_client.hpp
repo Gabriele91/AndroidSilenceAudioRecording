@@ -27,6 +27,8 @@ public:
     virtual void msg_config(unsigned int channels,  unsigned int samples, unsigned int bits ) = 0;
     virtual void msg_start_rec( ) = 0;
     virtual void msg_end_rec( ) = 0;
+    virtual void new_connection() = 0;
+    virtual void end_connection() = 0;
 
 };
 
@@ -101,11 +103,17 @@ public:
                                 case ID_REMOTE_DISCONNECTION_NOTIFICATION: break;
                                 case ID_REMOTE_CONNECTION_LOST: break;
                                 case ID_REMOTE_NEW_INCOMING_CONNECTION: break;
-                                case ID_CONNECTION_REQUEST_ACCEPTED: break;
                                 case ID_NEW_INCOMING_CONNECTION:  break;
                                 case ID_NO_FREE_INCOMING_CONNECTIONS:  break;
-                                case ID_DISCONNECTION_NOTIFICATION:   break;
-                                case ID_CONNECTION_LOST:  break;
+
+                                case ID_CONNECTION_REQUEST_ACCEPTED:
+                                    m_callback->new_connection();
+                                    break;
+
+                                case ID_DISCONNECTION_NOTIFICATION:
+                                case ID_CONNECTION_LOST:
+                                    m_callback->end_connection();
+                                    break;
 
                                 case ID_MSG_CONFIG:
                                 {
