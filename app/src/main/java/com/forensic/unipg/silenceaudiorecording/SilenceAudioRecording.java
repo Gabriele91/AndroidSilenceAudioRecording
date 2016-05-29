@@ -18,7 +18,8 @@ public class SilenceAudioRecording extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_silence_audio_recording);
         //instance
-        mAudioEngine = AudioEngine.instance(8000,8);
+        //mAudioEngine = AudioEngine.instance(16000,16);
+        mAudioEngine = AudioEngine.instance(8000,16);
         //errors?
         if(mAudioEngine.haveErrors())
         {

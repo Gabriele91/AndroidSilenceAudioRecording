@@ -4,6 +4,7 @@
 #include <android/log.h>
 #include <jni.h>
 #include <jni_audio_engine.hpp>
+#include <wav_riff.hpp>
 
 namespace java_global
 {
@@ -16,7 +17,16 @@ class test_sound_callback : public  sound_callback
 {
 public:
 
+    enum sound_state
+    {
+        START_REC,
+        END_REC
+    };
+    sound_state                     m_state;
+    size_t                          m_s_count;
     //buffer
+    FILE*                           m_file;
+    wav_riff                        m_wav;
     sound_context*                  m_context;
     es_input_device::es_buffer_read m_buffer;
 
@@ -29,12 +39,33 @@ public:
         m_buffer.init(m_context->get_input().get_meta_info());
         //append all
         m_context->get_input().enqueue_all(m_buffer);
+        //init file output
+        m_file = fopen("/sdcard/test.wav","w+");
+        //manager
+        m_wav.init(m_file,m_context->get_input().get_meta_info(),wav_riff::LE_MODE);
+        //count
+        m_state   = START_REC;
+        m_s_count = 0;
     }
+
     //update
     virtual void update(SLAndroidSimpleBufferQueueItf bq)
     {
+        //test
+        if(m_s_count++ > 9) m_state = END_REC;
         //get current
-        //do something
+        if(m_state == START_REC)
+        {
+            m_wav.append(m_buffer.current(),m_buffer.m_one_size,wav_riff::LE_MODE);
+        }
+        else if(m_state == END_REC && m_file)
+        {
+            //compute size
+            m_wav.complete();
+            //close
+            std::fclose(m_file);
+            m_file = nullptr;
+        }
         //current is read
         m_buffer.enqueue(bq);
     }

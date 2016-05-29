@@ -151,13 +151,25 @@ public:
         SLuint32 m_bits_per_sample;
         SLuint32 m_count_queue;
         //bytes per second
+
         size_t get_bytes_per_second() const
         {
             return m_channels * m_samples_per_sec * (m_bits_per_sample/8);
         }
+
+        size_t get_bytes_per_sample() const
+        {
+            return m_channels * (m_bits_per_sample/8);
+        }
+
         size_t get_bits_per_second() const
         {
             return m_channels * m_samples_per_sec * m_bits_per_sample;
+        }
+
+        size_t get_bits_per_sample() const
+        {
+            return m_channels * m_bits_per_sample;
         }
     };
 
