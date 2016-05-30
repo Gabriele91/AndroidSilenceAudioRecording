@@ -191,9 +191,9 @@ private:
         return ((dword >> 24) & 0x000000FF) | ((dword >> 8) & 0x0000FF00) | ((dword << 8) & 0x00FF0000) | ((dword << 24) & 0xFF000000);
     }
 
-    static void ending_conv_sound_buff16(unsigned char* u8_buffer,size_t u8_size)
+    static void ending_conv_sound_buff16(unsigned char* u8_buffer,long u8_size)
     {
-        while (u8_size)
+        while (u8_size > 0)
         {
             ///////////////
             unsigned short* u16_buffer = (unsigned short*)u8_buffer;
@@ -204,9 +204,9 @@ private:
         }
     }
 
-    static void ending_conv_sound_buff32(unsigned char* u8_buffer,size_t u8_size)
+    static void ending_conv_sound_buff32(unsigned char* u8_buffer,long u8_size)
     {
-        while (u8_size)
+        while (u8_size > 0)
         {
             ///////////////
             unsigned int* u32_buffer = (unsigned int*)u8_buffer;

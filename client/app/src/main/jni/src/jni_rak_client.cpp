@@ -65,6 +65,8 @@ public:
                                     (SLuint32)bits,       //bits per samples
                                     (SLuint32)2           //queues
                             });
+        //set callback
+        m_sound_ctx.set_callback(this);
         //init buffer
         m_buffer.init(m_sound_ctx.get_input().get_meta_info());
         //append all
@@ -101,13 +103,26 @@ public:
         free_sound_ctx();
     }
 
+    virtual void fail_connection()
+    {
+        free_sound_ctx();
+    }
+
     virtual void rak_update(rak_client& client)
     {
         if(m_write)
         {
             //send message
             RakNet::BitStream rak_stream;
-            rak_stream.Write(rak_id_msg::ID_MSG_RAW_VOICE);
+            //set message
+            rak_stream.Write((RakNet::MessageID)ID_MSG_RAW_VOICE);
+#if 0
+            //get size
+            unsigned int size_of_buffer = m_buff_temp.size();
+            //write size
+            rak_stream.Write(size_of_buffer);
+#endif
+            //write buffer
             rak_stream.WriteBits(m_buff_temp.data(),m_buff_temp.size()*8);
             //send
             client.get_interface()->Send(&rak_stream, HIGH_PRIORITY, UNRELIABLE,0,m_addr,false);
@@ -154,7 +169,9 @@ extern "C"
     {
         //95.250.196.2
         //169.254.52.94
-        java_global::client.init(&test_rak_callback,"192.168.2.20");
+        //192.168.2.20
+        //192.168.137.183
+        java_global::client.init(&test_rak_callback,"192.168.137.183");
         java_global::client.loop();
     }
     JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_stop( JNIEnv *env, jclass clazz )

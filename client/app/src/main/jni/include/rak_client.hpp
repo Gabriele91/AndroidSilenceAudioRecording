@@ -11,7 +11,7 @@
 #include <thread>
 #include <android/log.h>
 
-#define DEFAULT_PORT 62348
+#define DEFAULT_PORT 8000
 class rak_client;
 class rak_client_callback;
 
@@ -34,6 +34,7 @@ public:
     virtual void msg_end_rec( ) = 0;
     virtual void new_connection(RakNet::AddressOrGUID) = 0;
     virtual void end_connection(RakNet::AddressOrGUID) = 0;
+    virtual void fail_connection() = 0;
     virtual void rak_update(rak_client& client) = 0;
 };
 
@@ -110,11 +111,16 @@ public:
                         {
                             switch (packet->data[0])
                             {
+#if 0
                                 case ID_REMOTE_DISCONNECTION_NOTIFICATION: break;
                                 case ID_REMOTE_CONNECTION_LOST: break;
                                 case ID_REMOTE_NEW_INCOMING_CONNECTION: break;
                                 case ID_NEW_INCOMING_CONNECTION:  break;
                                 case ID_NO_FREE_INCOMING_CONNECTIONS:  break;
+#endif
+                                case ID_CONNECTION_ATTEMPT_FAILED:
+                                    m_callback->fail_connection();
+                                    break;
 
                                 case ID_CONNECTION_REQUEST_ACCEPTED:
                                     m_callback->new_connection(packet->systemAddress);

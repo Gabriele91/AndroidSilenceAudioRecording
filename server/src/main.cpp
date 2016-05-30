@@ -9,8 +9,8 @@
 #include <RakNet/BitStream.h>
 #include <RakNet/RakNetVersion.h>  // MessageID
 
-#define MAX_CLIENTS 1
-#define SERVER_PORT 62348
+#define MAX_CLIENTS 16
+#define SERVER_PORT 8000
 class rak_server_listener;
 class rak_server;
 
@@ -27,7 +27,8 @@ class rak_server_listener
 public:
 	virtual void incoming_connection(rak_server&,const RakNet::AddressOrGUID addrs) = 0;
     virtual void end_connection(rak_server&,const RakNet::AddressOrGUID addrs) = 0;
-    virtual void get_raw_voice(rak_server&,const RakNet::AddressOrGUID addrs,const std::vector < unsigned char >& buffer) = 0;
+    virtual void get_raw_voice(rak_server&,const RakNet::AddressOrGUID addrs,std::vector < unsigned char >& buffer) = 0;
+    virtual void fail_connection() = 0;
 	virtual void update(rak_server&) = 0;
 };
 
@@ -47,8 +48,8 @@ public:
 
     bool init() 
     {
-        RakNet::SocketDescriptor sd(SERVER_PORT, 0);
-        RakNet::StartupResult result = m_peer->Startup(MAX_CLIENTS, &sd, 1);
+        RakNet::SocketDescriptor socket_desc(SERVER_PORT, 0);
+        RakNet::StartupResult result = m_peer->Startup(MAX_CLIENTS, &socket_desc, 1);
         m_peer->SetMaximumIncomingConnections(MAX_CLIENTS);
         return result == RakNet::RAKNET_STARTED;
     }
@@ -60,16 +61,16 @@ public:
 
     void send_stop_msg(const RakNet::AddressOrGUID addr)
     {
-        RakNet::BitStream bsOut;
-        bsOut.Write((RakNet::MessageID)ID_MSG_END_REC);
-        m_peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, addr, false);
+        RakNet::BitStream stream_output;
+        stream_output.Write((RakNet::MessageID)ID_MSG_END_REC);
+        m_peer->Send(&stream_output, HIGH_PRIORITY, RELIABLE_ORDERED, 0, addr, false);
     }
 
     void send_start_msg(const RakNet::AddressOrGUID addr)
     {
-        RakNet::BitStream bsOut;
-        bsOut.Write((RakNet::MessageID)ID_MSG_START_REC);
-        m_peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, addr, false);
+        RakNet::BitStream stream_output;
+        stream_output.Write((RakNet::MessageID)ID_MSG_START_REC);
+        m_peer->Send(&stream_output, HIGH_PRIORITY, RELIABLE_ORDERED, 0, addr, false);
     }
     void send_config_msg(const RakNet::AddressOrGUID addr,
                          unsigned int channels = 0,
@@ -95,14 +96,20 @@ public:
             {
                 switch (packet->data[0])
                 {
+#if 0
                     case ID_REMOTE_DISCONNECTION_NOTIFICATION: break;
                     case ID_REMOTE_CONNECTION_LOST: break;
                     case ID_REMOTE_NEW_INCOMING_CONNECTION: break;
                     case ID_CONNECTION_REQUEST_ACCEPTED: break;
+#endif
                         
                     case ID_NEW_INCOMING_CONNECTION:
                         listener.incoming_connection(*this, packet->systemAddress);
-                    break;
+                        break;
+                        
+                    case ID_CONNECTION_ATTEMPT_FAILED:
+                        listener.fail_connection();
+                        break;
                         
                     case ID_NO_FREE_INCOMING_CONNECTIONS: break;
                     case ID_DISCONNECTION_NOTIFICATION:
@@ -113,15 +120,15 @@ public:
                         
                     case ID_MSG_RAW_VOICE:
                     {
-                        RakNet::BitStream stream;
+                        RakNet::BitStream stream(packet->data,packet->length,false);
                         //jmp id
                         stream.IgnoreBits(sizeof(RakNet::MessageID));
-                        //buffer remaning
-                        size_t size = stream.GetNumberOfUnreadBits() / 8;
+                        //buffer size
+                        unsigned int size = stream.GetNumberOfUnreadBits() / 8;
                         //alloc buffer
                         std::vector < unsigned char > buffer(size);
                         //read buffer
-                        stream.ReadBits(buffer.data(), stream.GetNumberOfUnreadBits());
+                        stream.ReadBits(buffer.data(), size*8);
                         //value
                         listener.get_raw_voice(*this, packet->systemAddress, buffer);
                     }
@@ -161,21 +168,17 @@ public:
         //open file
         m_file = fopen("test.wav","w");
         //init file
-        m_wav.init(m_file, info, wav_riff::BE_MODE);
+        m_wav.init(m_file, info, wav_riff::LE_MODE);
         //send start rec
         server.send_start_msg(addr);
     }
     
 	virtual void end_connection(rak_server&, const RakNet::AddressOrGUID)
 	{
-        //compute size
-        m_wav.complete();
-        //close
-        fclose(m_file);
-        m_file = nullptr;
+        close_wav_file();
 	}
     
-    virtual void get_raw_voice(rak_server&,const RakNet::AddressOrGUID addrs,const std::vector < unsigned char >& buffer)
+    virtual void get_raw_voice(rak_server&,const RakNet::AddressOrGUID addrs,std::vector < unsigned char >& buffer)
     {
         //append file
         m_wav.append((void*)buffer.data(), buffer.size(), wav_riff::LE_MODE);
@@ -185,10 +188,29 @@ public:
 	{
 	}
     
+    virtual void fail_connection()
+    {
+        close_wav_file();
+    }
+    
 public:
     
     FILE*    m_file { nullptr };
     wav_riff m_wav;
+    
+    void close_wav_file()
+    {
+        //if open
+        if(m_file)
+        {
+            //compute size
+            m_wav.complete();
+            //close
+            fclose(m_file);
+            m_file = nullptr;
+        }
+    }
+    
 };
 
 int main(void)
