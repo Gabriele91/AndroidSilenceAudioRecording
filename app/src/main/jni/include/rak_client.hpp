@@ -12,24 +12,30 @@
 #include <android/log.h>
 
 #define DEFAULT_PORT 62348
+enum  rak_id_msg;
+class rak_client;
+class rak_client_callback;
 
 enum rak_id_msg
 {
     ID_MSG_CONFIG = ID_USER_PACKET_ENUM+1,
     ID_MSG_START_REC,
-    ID_MSG_END_REC
+    ID_MSG_END_REC,
+    ID_MSG_RAW_VOICE
 };
 
 class rak_client_callback
 {
 public:
 
-    virtual void msg_config(unsigned int channels,  unsigned int samples, unsigned int bits ) = 0;
+    virtual void msg_config(unsigned int channels,
+                            unsigned int samples,
+                            unsigned int bits ) = 0;
     virtual void msg_start_rec( ) = 0;
     virtual void msg_end_rec( ) = 0;
-    virtual void new_connection() = 0;
-    virtual void end_connection() = 0;
-
+    virtual void new_connection(RakNet::AddressOrGUID) = 0;
+    virtual void end_connection(RakNet::AddressOrGUID) = 0;
+    virtual void rak_update(rak_client& client) = 0;
 };
 
 class rak_client
@@ -42,6 +48,11 @@ public:
         m_peer = RakNet::RakPeerInterface::GetInstance();
         //get
         m_loop = false;
+    }
+
+    RakNet::RakPeerInterface* get_interface()
+    {
+        return m_peer;
     }
 
     ~rak_client()
@@ -107,12 +118,12 @@ public:
                                 case ID_NO_FREE_INCOMING_CONNECTIONS:  break;
 
                                 case ID_CONNECTION_REQUEST_ACCEPTED:
-                                    m_callback->new_connection();
+                                    m_callback->new_connection(packet->systemAddress);
                                     break;
 
                                 case ID_DISCONNECTION_NOTIFICATION:
                                 case ID_CONNECTION_LOST:
-                                    m_callback->end_connection();
+                                    m_callback->end_connection(packet->systemAddress);
                                     break;
 
                                 case ID_MSG_CONFIG:
@@ -152,6 +163,8 @@ public:
                                     break;
                             }
                         }
+                        //rak thread update
+                        m_callback->rak_update(*this);
                     }
                 });
         return true;
