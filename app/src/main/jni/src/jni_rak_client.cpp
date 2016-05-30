@@ -38,13 +38,15 @@ public:
         //get current
         if(m_state == START_REC)
         {
-            //alloc
-            m_buff_temp.resize(m_buffer.m_one_size);
-            //copy
-            std::memcpy(m_buff_temp.data(),m_buffer.current(),m_buff_time.size());
-            //enable write
-            m_write = true;
-
+            if(!m_write)
+            {
+                //alloc
+                m_buff_temp.resize(m_buffer.m_one_size);
+                //copy
+                std::memcpy(m_buff_temp.data(), m_buffer.current(), m_buff_temp.size());
+                //enable write
+                m_write = true;
+            }
         }
         //current is read
         m_buffer.enqueue(bq);
