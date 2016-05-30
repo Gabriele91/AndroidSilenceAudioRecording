@@ -12,7 +12,6 @@
 #include <android/log.h>
 
 #define DEFAULT_PORT 62348
-enum  rak_id_msg;
 class rak_client;
 class rak_client_callback;
 
