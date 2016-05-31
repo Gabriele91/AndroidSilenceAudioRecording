@@ -5,6 +5,14 @@ package com.forensic.unipg.silenceaudiorecording;
  */
 public class RakClient
 {
-    static public native boolean start();
+
+    public static final int C_S_START           = 0;
+    public static final int C_S_CONNECTED       = 1;
+    public static final int C_S_DISCONECTED     = 2;
+    public static final int C_S_FAIL_TO_CONNECT = 3;
+    public static final int C_S_FAIL_TO_START   = 4;
+
+    static public native boolean start(String host);
     static public native boolean stop();
+    static public native int     state();
 }

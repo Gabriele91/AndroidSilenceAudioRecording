@@ -7,15 +7,18 @@
 #include <atomic>
 #include <cstring>
 
-namespace java_global
+enum client_status
 {
-    //global values
-    rak_client client;
-}
+    C_S_START           = 0,
+    C_S_CONNECTED       = 1,
+    C_S_DISCONECTED     = 2,
+    C_S_FAIL_TO_CONNECT = 3,
+    C_S_FAIL_TO_START   = 4
+};
 
 
-class test_callback : public rak_client_callback
-                     ,public sound_callback
+class rak_sound_callback : public rak_client_callback
+                          ,public sound_callback
 {
 public:
 
@@ -26,6 +29,22 @@ public:
         PAUSE_REC,
         END_REC
     };
+
+    //////////////////////////////////////////////////////////////////////
+    //init status
+    rak_sound_callback()
+    {
+        m_status = C_S_START;
+    }
+    ~rak_sound_callback()
+    {
+        m_status = C_S_DISCONECTED;
+    }
+    //special case
+    void set_fail_to_start()
+    {
+        m_status = C_S_FAIL_TO_START;
+    }
     //////////////////////////////////////////////////////////////////////
     //sound_callback
     //init
@@ -52,7 +71,6 @@ public:
         //current is read
         m_buffer.enqueue(bq);
     }
-
     //////////////////////////////////////////////////////////////////////
     //rak_client_callback
     virtual void msg_config(unsigned int channels,  unsigned int samples, unsigned int bits )
@@ -105,16 +123,19 @@ public:
 
     virtual void new_connection(RakNet::AddressOrGUID addr)
     {
-        m_addr = addr;
+        m_status = C_S_CONNECTED;
+        m_addr   = addr;
     }
 
     virtual void end_connection(RakNet::AddressOrGUID addr)
     {
+        m_status = C_S_DISCONECTED;
         free_sound_ctx();
     }
 
     virtual void fail_connection()
     {
+        m_status = C_S_FAIL_TO_CONNECT;
         free_sound_ctx();
     }
 
@@ -157,6 +178,10 @@ public:
         }
     }
     //////////////////////////////////////////////////////////////////////
+    client_status get_status() const
+    {
+        return m_status;
+    }
 
 protected:
 
@@ -168,25 +193,41 @@ protected:
     RakNet::AddressOrGUID           m_addr;
     std::atomic< bool >             m_write      { false };
     std::vector < unsigned  char >  m_buff_temp;
+    client_status                   m_status;
 
+};
+
+namespace java_global
+{
+    //global values
+    rak_client          client;
+    rak_sound_callback  client_callback;
 }
-test_rak_callback;
 
 extern "C"
 {
 
-    JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_start( JNIEnv *env, jclass clazz )
+    JNIEXPORT jboolean JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_start( JNIEnv *env, jclass clazz, jstring host )
     {
-        //95.250.196.2
-        //169.254.52.94
-        //192.168.2.20
-        //192.168.137.183
-        //192.168.1.132
-        java_global::client.init(&test_rak_callback,"192.168.1.132");
-        java_global::client.loop();
+        //get ip
+        const char* c_str_host= env->GetStringUTFChars( host , NULL );
+        //init
+        bool status = java_global::client.init(&java_global::client_callback,c_str_host);
+        //start loop
+        if(status) java_global::client.loop();
+        else       java_global::client_callback.set_fail_to_start();
+        //return state
+        return (jboolean)status;
     }
-    JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_stop( JNIEnv *env, jclass clazz )
+
+    JNIEXPORT jboolean JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_stop( JNIEnv *env, jclass clazz )
     {
         java_global::client.stop_loop();
+        return (jboolean)!java_global::client.is_loop();
+    }
+
+    JNIEXPORT jint JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_state( JNIEnv *env, jclass clazz )
+    {
+        return java_global::client_callback.get_status();
     }
 }

