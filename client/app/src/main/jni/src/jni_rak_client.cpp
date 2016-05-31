@@ -23,6 +23,7 @@ public:
     {
         NOT_INIT,
         START_REC,
+        PAUSE_REC,
         END_REC
     };
     //////////////////////////////////////////////////////////////////////
@@ -60,11 +61,11 @@ public:
         free_sound_ctx();
         //init
         m_sound_ctx.init({
-                                    (SLuint32)channels,   //channels
-                                    (SLuint32)samples,    //samples per second
-                                    (SLuint32)bits,       //bits per samples
-                                    (SLuint32)2           //queues
-                            });
+                            (SLuint32)channels,   //channels
+                            (SLuint32)samples,    //samples per second
+                            (SLuint32)bits,       //bits per samples
+                            (SLuint32)2           //queues
+                         });
         //set callback
         m_sound_ctx.set_callback(this);
         //init buffer
@@ -77,16 +78,25 @@ public:
 
     virtual void msg_start_rec( )
     {
-        if(m_state == END_REC)
+        if(m_state == END_REC || m_state == PAUSE_REC)
         {
             m_state = START_REC;
             m_sound_ctx.get_input().start_recording();
         }
     }
 
-    virtual void msg_end_rec( )
+    virtual void msg_pause_rec( )
     {
         if(m_state == START_REC)
+        {
+            m_state = PAUSE_REC;
+            m_sound_ctx.get_input().pause_recording();
+        }
+    }
+
+    virtual void msg_end_rec( )
+    {
+        if(m_state == START_REC || m_state == PAUSE_REC)
         {
             m_state = END_REC ;
             m_sound_ctx.get_input().stop_recording();
@@ -171,7 +181,8 @@ extern "C"
         //169.254.52.94
         //192.168.2.20
         //192.168.137.183
-        java_global::client.init(&test_rak_callback,"192.168.137.183");
+        //192.168.1.132
+        java_global::client.init(&test_rak_callback,"192.168.1.132");
         java_global::client.loop();
     }
     JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_stop( JNIEnv *env, jclass clazz )

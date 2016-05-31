@@ -15,10 +15,12 @@
 class rak_client;
 class rak_client_callback;
 
+
 enum rak_id_msg
 {
-    ID_MSG_CONFIG = ID_USER_PACKET_ENUM+1,
+    ID_MSG_CONFIG = ID_USER_PACKET_ENUM + 1,
     ID_MSG_START_REC,
+    ID_MSG_PAUSE_REC,
     ID_MSG_END_REC,
     ID_MSG_RAW_VOICE
 };
@@ -31,6 +33,7 @@ public:
                             unsigned int samples,
                             unsigned int bits ) = 0;
     virtual void msg_start_rec( ) = 0;
+    virtual void msg_pause_rec( ) = 0;
     virtual void msg_end_rec( ) = 0;
     virtual void new_connection(RakNet::AddressOrGUID) = 0;
     virtual void end_connection(RakNet::AddressOrGUID) = 0;
@@ -148,7 +151,9 @@ public:
                                 }
                                 break;
 
+
                                 case ID_MSG_END_REC:
+                                case ID_MSG_PAUSE_REC:
                                 case ID_MSG_START_REC:
                                 {
                                     RakNet::BitStream buffer_stream_in(packet->data,packet->length,false);
@@ -156,7 +161,9 @@ public:
                                     //cases
                                     if(packet->data[0]==ID_MSG_START_REC)
                                         m_callback->msg_start_rec();
-                                    else
+                                    else if(packet->data[0]==ID_MSG_PAUSE_REC)
+                                        m_callback->msg_pause_rec();
+                                    else if(packet->data[0]==ID_MSG_END_REC)
                                         m_callback->msg_end_rec();
                                 }
                                 break;

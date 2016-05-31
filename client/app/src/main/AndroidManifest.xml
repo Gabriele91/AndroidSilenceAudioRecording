@@ -7,20 +7,40 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- debug-writing file need external storage writing -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <!-- Adding the permission -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity android:name=".SilenceAudioRecording">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+            android:allowBackup="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name"
+            android:supportsRtl="true"
+            android:theme="@style/AppTheme">
+            <activity android:name=".SilenceAudioRecordingActivity">
+                <intent-filter>
+                    <action android:name="android.intent.action.MAIN" android:noHistory = "true"/>
+                    <category android:name="android.intent.category.LAUNCHER" />
+                </intent-filter>
+            </activity>
+        <!-- DEBUG -->
+            <service android:enabled="true"
+                     android:exported="false"
+                     android:name=".SilenceAudioRecordingService" />
+        <!-- RELEASE
+        <service android:enabled="true"
+                 android:exported="true"
+                 android:process=":AudioEngine"
+                 android:name=".SilenceAudioRecordingService" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
+        <receiver android:name=".BootReceiver"
+                  android:enabled="true"
+                  android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <category android:name="android.intent.category.HOME" />
             </intent-filter>
-        </activity>
+        </receiver>
+         -->
     </application>
 
 </manifest>

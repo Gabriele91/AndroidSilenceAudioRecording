@@ -263,6 +263,7 @@
 				E06FA6881CFC318D00C97184 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
