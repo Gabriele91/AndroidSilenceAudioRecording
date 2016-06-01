@@ -233,6 +233,10 @@
 		E06FA6871CFC318D00C97184 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_LDFLAGS = (
+					"-lRakNetLibStatic",
+					"-lopus",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -240,6 +244,10 @@
 		E06FA6881CFC318D00C97184 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_LDFLAGS = (
+					"-lRakNetLibStatic",
+					"-lopus",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

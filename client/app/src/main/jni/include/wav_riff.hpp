@@ -150,8 +150,6 @@ public:
         std::fseek(m_file,0,SEEK_END);
     }
 
-private:
-
     static unsigned short endian_uint16_conversion(unsigned short word)
     {
         return ((word >> 8) & 0x00FF) | ((word << 8) & 0xFF00);
@@ -187,6 +185,8 @@ private:
             u8_size   -= 4;
         }
     }
+
+private:
 
     //current file
     size_t m_bits_per_sample  { 0 };

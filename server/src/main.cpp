@@ -13,8 +13,9 @@
 #include <RakNet/MessageIdentifiers.h>
 #include <RakNet/BitStream.h>
 #include <RakNet/RakNetVersion.h>  // MessageID
-#include <curses.h>
+#include <opus/opus.h>
 
+//#define USE_RAW_AUDIO
 #define SHELL_CLEAR system("clear"); ////system("cls");
 #define MAX_CLIENTS 16
 #define SERVER_PORT 8000
@@ -35,7 +36,7 @@ class rak_server_listener
 public:
 	virtual void incoming_connection(rak_server&,const RakNet::AddressOrGUID addrs) = 0;
     virtual void end_connection(rak_server&,const RakNet::AddressOrGUID addrs) = 0;
-    virtual void get_raw_voice(rak_server&,const RakNet::AddressOrGUID addrs,std::vector < unsigned char >& buffer) = 0;
+    virtual void get_raw_voice(rak_server&,const RakNet::AddressOrGUID addrs,RakNet::BitStream& stream) = 0;
     virtual void fail_connection() = 0;
 	virtual void update(rak_server&) = 0;
 };
@@ -155,15 +156,9 @@ public:
                         {
                             RakNet::BitStream stream(packet->data,packet->length,false);
                             //jmp id
-                            stream.IgnoreBits(sizeof(RakNet::MessageID));
-                            //buffer size
-                            unsigned int size = stream.GetNumberOfUnreadBits() / 8;
-                            //alloc buffer
-                            std::vector < unsigned char > buffer(size);
-                            //read buffer
-                            stream.ReadBits(buffer.data(), size*8);
+                            stream.IgnoreBytes(sizeof(RakNet::MessageID));
                             //value
-                            listener.get_raw_voice(*this, packet->systemAddress, buffer);
+                            listener.get_raw_voice(*this, packet->systemAddress, stream);
                         }
                         break;
 
@@ -216,6 +211,19 @@ public:
             8000,
             16
         };
+        
+#ifndef USE_RAW_AUDIO
+        //alloc decoder
+        m_decoder = opus_decoder_create(m_info.m_samples_per_sec, m_info.m_channels, &m_error);
+        //alloc buffer
+        m_buf_dec.resize(m_info.m_channels*m_info.m_samples_per_sec*m_info.m_bits_per_sample/8);
+#endif
+    }
+    ~test_listener()
+    {
+#ifndef USE_RAW_AUDIO
+        if(m_decoder) opus_decoder_destroy(m_decoder);
+#endif
     }
     
 	virtual void incoming_connection(rak_server& server, const RakNet::AddressOrGUID addr)
@@ -236,10 +244,54 @@ public:
         close_wav_file();
 	}
     
-    virtual void get_raw_voice(rak_server& server,const RakNet::AddressOrGUID addrs,std::vector < unsigned char >& buffer)
+    virtual void get_raw_voice(rak_server& server,const RakNet::AddressOrGUID addrs,RakNet::BitStream& stream)
     {
-        //append file
+    #ifdef USE_RAW_AUDIO
+        std::vector < unsigned char > buffer;
+        //buffer size
+        unsigned int size = stream.GetNumberOfUnreadBits() / 8;
+        //alloc buffer
+        std::vector < unsigned char > buffer(size);
+        //read buffer
+        stream.ReadBits(buffer.data(), size*8);
+        //append
         m_wav.append((void*)buffer.data(), buffer.size(), wav_riff::LE_MODE);
+    #else
+        //ptr buffer
+        int         buff16_size = (int)m_buf_dec.size() / sizeof(opus_int16);
+        opus_int16* buff16_ptr  = (opus_int16*)m_buf_dec.data();
+        //get count of blocks
+        unsigned int buff16_div;
+        stream.Read(buff16_div);
+        //for each
+        for(int i=0;i!=buff16_div;++i)
+        {
+            //get size of a block;
+            int block_size = 0;
+            stream.Read(block_size);
+            //alloc buffer
+            std::vector < unsigned char > buffer(block_size);
+            stream.ReadBits(buffer.data(), block_size*8);
+            //get
+            int samples_out =
+            opus_decode(m_decoder,
+                        buffer.data(),
+                        block_size,
+                        buff16_ptr,
+                        buff16_size,
+                        0);
+            //test
+            assert(samples_out >= 0);
+            //dec
+            buff16_size -= samples_out;
+            //next
+            buff16_ptr  += samples_out;
+        }
+        m_wav.append((void*)m_buf_dec.data(),
+                     m_buf_dec.size()-(buff16_size * sizeof(opus_int16)),
+                     wav_riff::BE_MODE);
+        
+    #endif
     }
     
 	virtual void update(rak_server& server)
@@ -295,7 +347,13 @@ protected:
     wav_riff              m_wav;
     RakNet::AddressOrGUID m_addr;
     atomic_listener_state m_state { S_DISC };
-    
+
+#ifndef USE_RAW_AUDIO
+    //sound codec
+    OpusDecoder*                  m_decoder;
+    int                           m_error;
+    std::vector< unsigned char >  m_buf_dec;
+#endif
  
 };
 

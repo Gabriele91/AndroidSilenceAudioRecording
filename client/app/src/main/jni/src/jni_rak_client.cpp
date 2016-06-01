@@ -7,6 +7,7 @@
 #include <jni_audio_engine.hpp>
 #include <atomic>
 #include <cstring>
+#include <include/wav_riff.hpp>
 //not use opus
 //#define USE_RAW_AUDIO
 //else use opus
@@ -47,7 +48,13 @@ public:
 
 #ifndef USE_RAW_AUDIO
         //delete encoder
-        if(m_encoder) opus_encoder_destroy(m_encoder);
+        if(m_encoder)
+        {
+            //delete
+            opus_encoder_destroy(m_encoder);
+            //to null
+            m_encoder = nullptr;
+        }
 #endif
     }
     //special case
@@ -104,10 +111,19 @@ public:
         m_state = END_REC;
 
 #ifndef USE_RAW_AUDIO
+        #define BITRATE 12000
         //already init encoder? free
-        if(m_encoder) opus_encoder_destroy(m_encoder);
+        if(m_encoder)
+        {
+            //delete
+            opus_encoder_destroy(m_encoder);
+            //to null
+            m_encoder = nullptr;
+        }
         //init encoder
         m_encoder=opus_encoder_create(samples,channels,OPUS_APPLICATION_AUDIO,&m_opus_err);
+        //set the BITRATE
+        m_opus_err = opus_encoder_ctl(m_encoder, OPUS_SET_BITRATE(BITRATE));
 #endif
     }
 
@@ -165,33 +181,63 @@ public:
             RakNet::BitStream rak_stream;
             //set message
             rak_stream.Write((RakNet::MessageID)ID_MSG_RAW_VOICE);
-#if 0
-            //get size
-            unsigned int size_of_buffer = m_buff_temp.size();
-            //write size
-            rak_stream.Write(size_of_buffer);
-#endif
             //write buffer
             rak_stream.WriteBits(m_buff_temp.data(),m_buff_temp.size()*8);
             //send
             client.get_interface()->Send(&rak_stream, HIGH_PRIORITY, UNRELIABLE,0,m_addr,false);
 #else
+            //encode
+            m_encode_buffer.resize(m_buff_temp.size());
+            //??*le to be*??//
+/*
+            630             case 0: newsize=sampling_rate/400; break;
+            631             case 1: newsize=sampling_rate/200; break;
+            632             case 2: newsize=sampling_rate/100; break;
+            633             case 3: newsize=sampling_rate/50; break;
+            634             case 4: newsize=sampling_rate/25; break;
+            635             case 5: newsize=3*sampling_rate/50; break;
+*/
+            //int16 buffer size
+            unsigned int buff16_div        = 100;
+            unsigned int buff16_size       = m_buff_temp.size() / sizeof(opus_int16) ;
+            unsigned int buff16_size_frame = buff16_size / buff16_div;
+            opus_int16* buff16_ptr         = (opus_int16*)m_buff_temp.data();
+            //write n
             //send message
             RakNet::BitStream rak_stream;
-            //set message
             rak_stream.Write((RakNet::MessageID)ID_MSG_RAW_VOICE);
-            //encode
-            m_encode_buffer.resize(m_buff_temp.size() / sizeof(opus_int16));
-            //encode
-            size_t new_size = opus_encode(m_encoder,
-                                          (opus_int16*)m_buff_temp.data(),
-                                          m_buff_temp.size() / sizeof(opus_int16),
-                                          m_encode_buffer.data(),
-                                          m_encode_buffer.size() );
-            //write buffer
-            rak_stream.WriteBits(m_encode_buffer.data(),m_encode_buffer.size()*8);
+            rak_stream.Write(buff16_div);
+            //
+            for(int i=0;i!=buff16_div;++i)
+            {
+                //page ptr
+                opus_int16* buff16_ptr_page = &buff16_ptr[buff16_size_frame*i];
+                //encode
+                int new_size = opus_encode(m_encoder,
+                                           buff16_ptr_page,
+                                           buff16_size_frame,
+                                           m_encode_buffer.data(),
+                                           m_encode_buffer.size() );
+
+
+
+                if(new_size > 0)
+                {
+                    //write size
+                    rak_stream.Write(new_size);
+                    //write buffer
+                    rak_stream.WriteBits(m_encode_buffer.data(), new_size * 8);
+                }
+                else
+                {
+                    __android_log_print(ANDROID_LOG_ERROR,
+                                        "rak_client",
+                                        "Opus compression failed with identifier %d.\n",
+                                        new_size);
+                }
+            }
             //send
-            client.get_interface()->Send(&rak_stream, HIGH_PRIORITY, UNRELIABLE,0,m_addr,false);
+            client.get_interface()->Send(&rak_stream,HIGH_PRIORITY, RELIABLE_ORDERED, 0, m_addr, false);
 
 #endif
              //end write
@@ -235,8 +281,8 @@ protected:
 
     //opus
 #ifndef USE_RAW_AUDIO
-    OpusEncoder*                   m_encoder {nullptr};
-    int                            m_opus_err{0};
+    OpusEncoder*                   m_encoder        {nullptr};
+    int                            m_opus_err       { 0 };
     std::vector <  unsigned char > m_encode_buffer;
 #endif
 

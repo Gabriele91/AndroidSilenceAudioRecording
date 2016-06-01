@@ -28,8 +28,8 @@ public class SilenceAudioRecordingService extends Service
     //192.168.2.20
     //192.168.137.183
     //192.168.1.132
-
-    private String mHost = "192.168.1.132";
+    //192.168.1.134
+    private String mHost = "192.168.137.193";
     private int    mPort = 8000; //not implemented yet
 
     private Looper mServiceLooper;
