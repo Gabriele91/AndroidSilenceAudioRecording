@@ -1,6 +1,18 @@
 apply plugin: 'com.android.model.application'
 
 model {
+
+    repositories {
+        libs(PrebuiltLibraries) {
+            libopus {
+                headers.srcDir  "src/main/dependencies/include/"
+                binaries.withType(StaticLibraryBinary) {
+                    staticLibraryFile = file("src/main/dependencies/libs/${targetPlatform.getName()}/libopus.a")
+                }
+            }
+        }
+    }
+
     android {
         compileSdkVersion = 23
         buildToolsVersion = '23.0.3'
@@ -13,18 +25,8 @@ model {
         /*
          * native build settings: taking default for almost everything
          */
-        ndk {
-            moduleName = 'SilenceAudioRecordingNative'
-            platformVersion = 15
-            toolchain = 'clang'
-            CFlags.addAll(['-Wall', "-g"] )
-            cppFlags.addAll( ["-pedantic" , "-pthread", "-pedantic" ] )
-            cppFlags.add( "-std=c++11" )
-            ldLibs.addAll(['android', 'z', 'log', 'OpenSLES', "atomic"])
-            cppFlags.add( "-I${file("src/main/jni").absolutePath}".toString() )
-            cppFlags.add( "-I${file("src/main/jni/include").absolutePath}".toString() )
-            stl = "gnustl_static"
-        }
+
+
         buildTypes {
             release {
                 minifyEnabled = false
@@ -35,30 +37,83 @@ model {
             // for detailed abiFilter descriptions, refer to "Supported ABIs" @
             // https://developer.android.com/ndk/guides/abis.html#sa
             create("arm") {
-                ndk.abiFilters.add("armeabi")
+                ndk {
+                    //  ldFlags.add("-L${file("src/main/libs/").absolutePath}".toString()+"armeabi")
+                    //  ldLibs.add('opus')
+                    abiFilters.add("armeabi")
+                }
             }
             create("arm7") {
-                ndk.abiFilters.add("armeabi-v7a")
+                ndk {
+                    //  abiFilters.add("armeabi-v7a")
+                    //  ldFlags.add("-L${file("src/main/libs/").absolutePath}".toString()+"armeabi-v7a")
+                    ldLibs.add('opus')
+                }
             }
             create("arm8") {
-                ndk.abiFilters.add("arm64-v8a")
+                ndk {
+                    //  ldFlags.add("-L${file("src/main/libs/").absolutePath}".toString()+"arm64-v8a")
+                    //  ldLibs.add('opus')
+                    abiFilters.add("arm64-v8a")
+                }
             }
             create("x86") {
-                ndk.abiFilters.add("x86")
+                ndk {
+                    //  ldFlags.add("-L${file("src/main/libs/").absolutePath}".toString()+"x86")
+                    //  ldLibs.add('opus')
+                    abiFilters.add("x86")
+                }
             }
             create("x86-64") {
-                ndk.abiFilters.add("x86_64")
+                ndk {
+                    //  ldFlags.add("-L${file("src/main/libs/").absolutePath}".toString()+"x86_64")
+                    //   ldLibs.add('opus')
+                    abiFilters.add("x86_64")
+                }
             }
             create("mips") {
-                ndk.abiFilters.add("mips")
+                ndk {
+                    //  ldFlags.add("-L${file("src/main/libs/").absolutePath}".toString()+"mips")
+                    //  ldLibs.add('opus')
+                    abiFilters.add("mips")
+                }
             }
             create("mips-64") {
-                ndk.abiFilters.add("mips64")
+                ndk {
+                   // ldFlags.add("-L${file("src/main/libs/ ").absolutePath}".toString()+"mips64")
+                   // ldLibs.add('opus')
+                    abiFilters.add("mips64")
+                }
             }
+
             // To include all cpu architectures, leaves abiFilters empty
             create("all")
         }
+
+        ndk {
+            moduleName = 'SilenceAudioRecordingNative'
+            platformVersion = 15
+            toolchain = 'clang'
+            CFlags.addAll(['-Wall', "-g", "-DHAVE_CONFIG_H"] )
+            cppFlags.addAll( ["-pedantic" , "-pthread", "-pedantic" ] )
+            cppFlags.add( "-std=c++11" )
+            cppFlags.add( "-I${file("src/main/jni").absolutePath}".toString() )
+            cppFlags.add( "-I${file("src/main/jni/include").absolutePath}".toString() )
+            ldLibs.addAll(['android', 'z', 'log', 'OpenSLES', 'atomic'])
+            stl = "gnustl_static"
+        }
+        sources {
+            main {
+                jni {
+                    dependencies {
+                        library "libopus" linkage "static"
+                    }
+                }
+            }
+        }
+
     }
+
 }
 
 dependencies {

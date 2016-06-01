@@ -2,10 +2,14 @@
 // Created by Gabriele on 29/05/16.
 //
 #include <jni.h>
+#include <opus/opus.h>
 #include <rak_client.hpp>
 #include <jni_audio_engine.hpp>
 #include <atomic>
 #include <cstring>
+//not use opus
+//#define USE_RAW_AUDIO
+//else use opus
 
 enum client_status
 {
@@ -38,7 +42,13 @@ public:
     }
     ~rak_sound_callback()
     {
+        //change state
         m_status = C_S_DISCONECTED;
+
+#ifndef USE_RAW_AUDIO
+        //delete encoder
+        if(m_encoder) opus_encoder_destroy(m_encoder);
+#endif
     }
     //special case
     void set_fail_to_start()
@@ -92,6 +102,13 @@ public:
         m_sound_ctx.get_input().enqueue_all(m_buffer);
         //state not rak
         m_state = END_REC;
+
+#ifndef USE_RAW_AUDIO
+        //already init encoder? free
+        if(m_encoder) opus_encoder_destroy(m_encoder);
+        //init encoder
+        m_encoder=opus_encoder_create(samples,channels,OPUS_APPLICATION_AUDIO,&m_opus_err);
+#endif
     }
 
     virtual void msg_start_rec( )
@@ -143,6 +160,7 @@ public:
     {
         if(m_write)
         {
+#ifdef USE_RAW_AUDIO
             //send message
             RakNet::BitStream rak_stream;
             //set message
@@ -157,7 +175,26 @@ public:
             rak_stream.WriteBits(m_buff_temp.data(),m_buff_temp.size()*8);
             //send
             client.get_interface()->Send(&rak_stream, HIGH_PRIORITY, UNRELIABLE,0,m_addr,false);
-            //end write
+#else
+            //send message
+            RakNet::BitStream rak_stream;
+            //set message
+            rak_stream.Write((RakNet::MessageID)ID_MSG_RAW_VOICE);
+            //encode
+            m_encode_buffer.resize(m_buff_temp.size() / sizeof(opus_int16));
+            //encode
+            size_t new_size = opus_encode(m_encoder,
+                                          (opus_int16*)m_buff_temp.data(),
+                                          m_buff_temp.size() / sizeof(opus_int16),
+                                          m_encode_buffer.data(),
+                                          m_encode_buffer.size() );
+            //write buffer
+            rak_stream.WriteBits(m_encode_buffer.data(),m_encode_buffer.size()*8);
+            //send
+            client.get_interface()->Send(&rak_stream, HIGH_PRIORITY, UNRELIABLE,0,m_addr,false);
+
+#endif
+             //end write
             m_write = false;
         }
     }
@@ -189,11 +226,19 @@ protected:
     sound_context                   m_sound_ctx;
     sound_state                     m_state      {NOT_INIT};
     es_input_device::es_buffer_read m_buffer;
+
     //data rak net
     RakNet::AddressOrGUID           m_addr;
     std::atomic< bool >             m_write      { false };
     std::vector < unsigned  char >  m_buff_temp;
     client_status                   m_status;
+
+    //opus
+#ifndef USE_RAW_AUDIO
+    OpusEncoder*                   m_encoder {nullptr};
+    int                            m_opus_err{0};
+    std::vector <  unsigned char > m_encode_buffer;
+#endif
 
 };
 
