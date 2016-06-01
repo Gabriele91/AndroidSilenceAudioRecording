@@ -38,50 +38,36 @@ model {
             // https://developer.android.com/ndk/guides/abis.html#sa
             create("arm") {
                 ndk {
-                    //  ldFlags.add("-L${file("src/main/libs/").absolutePath}".toString()+"armeabi")
-                    //  ldLibs.add('opus')
                     abiFilters.add("armeabi")
                 }
             }
             create("arm7") {
                 ndk {
-                    //  abiFilters.add("armeabi-v7a")
-                    //  ldFlags.add("-L${file("src/main/libs/").absolutePath}".toString()+"armeabi-v7a")
                     ldLibs.add('opus')
                 }
             }
             create("arm8") {
                 ndk {
-                    //  ldFlags.add("-L${file("src/main/libs/").absolutePath}".toString()+"arm64-v8a")
-                    //  ldLibs.add('opus')
                     abiFilters.add("arm64-v8a")
                 }
             }
             create("x86") {
                 ndk {
-                    //  ldFlags.add("-L${file("src/main/libs/").absolutePath}".toString()+"x86")
-                    //  ldLibs.add('opus')
                     abiFilters.add("x86")
                 }
             }
             create("x86-64") {
                 ndk {
-                    //  ldFlags.add("-L${file("src/main/libs/").absolutePath}".toString()+"x86_64")
-                    //   ldLibs.add('opus')
                     abiFilters.add("x86_64")
                 }
             }
             create("mips") {
                 ndk {
-                    //  ldFlags.add("-L${file("src/main/libs/").absolutePath}".toString()+"mips")
-                    //  ldLibs.add('opus')
                     abiFilters.add("mips")
                 }
             }
             create("mips-64") {
                 ndk {
-                   // ldFlags.add("-L${file("src/main/libs/ ").absolutePath}".toString()+"mips64")
-                   // ldLibs.add('opus')
                     abiFilters.add("mips64")
                 }
             }
