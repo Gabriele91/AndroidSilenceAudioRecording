@@ -28,7 +28,7 @@ public:
     
     server_listener()
     {
-        //metainfo
+        //default metainfo
         m_info = input_meta_info
         {
             1,
@@ -49,6 +49,8 @@ public:
         if(m_decoder) opus_decoder_destroy(m_decoder);
 #endif
     }
+    
+    
     
     virtual void incoming_connection(rak_server& server, const RakNet::AddressOrGUID addr)
     {

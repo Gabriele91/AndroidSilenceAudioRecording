@@ -1,0 +1,6 @@
+!osx/debug/*.a
+!osx/release/*.a
+!win32/debug/*.lib
+!win32/release/*.lib
+!x64/debug/*.lib
+!x64/release/*.lib
