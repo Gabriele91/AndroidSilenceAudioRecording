@@ -16,6 +16,7 @@ enum listener_state
     S_NONE,
     S_DISC,
     S_CONN,
+    S_INFO,
     S_REC,
     S_PAUSE,
     S_STOP
@@ -48,6 +49,8 @@ public:
         m_info = info;
         //init decoder
 #ifndef USE_RAW_AUDIO
+        //init already called
+        if(m_decoder) opus_decoder_destroy(m_decoder);
         //alloc decoder
         m_decoder = opus_decoder_create(m_info.m_samples_per_sec, m_info.m_channels, &m_error);
         //alloc buffer
@@ -149,38 +152,46 @@ public:
         return m_addr;
     }
     
-    void send_start(rak_server& server) const
+    void send_start(rak_server& server)
     {
         server.mutex().lock();
         //send type
         server.send_start_msg(m_addr);
+        //start
+        m_state = S_REC;
         //end
         server.mutex().unlock();
     }
     
-    void send_pause(rak_server& server) const
+    void send_pause(rak_server& server)
     {
         server.mutex().lock();
         //send type
         server.send_pause_msg(m_addr);
+        //pause
+        m_state = S_PAUSE;
         //end
         server.mutex().unlock();
     }
     
-    void send_stop(rak_server& server) const
+    void send_stop(rak_server& server)
     {
         server.mutex().lock();
         //send type
         server.send_stop_msg(m_addr);
+        //stop
+        m_state = S_STOP;
         //end
         server.mutex().unlock();
     }
     
-    void send_meta_info(rak_server& server) const
+    void send_meta_info(rak_server& server)
     {
         server.mutex().lock();
         //send tipe
         server.send_config_msg(m_addr, m_info.m_channels, m_info.m_samples_per_sec, m_info.m_bits_per_sample);
+        //send info
+        m_state = S_INFO;
         //end
         server.mutex().unlock();
     }
@@ -192,6 +203,14 @@ public:
         m_file = fopen(path.c_str(),"w");
         //init file
         m_wav.init(m_file, m_info, wav_riff::LE_MODE);
+    }
+    
+    void reset_state()
+    {
+        //no change state
+        if(m_state == S_DISC) return;
+        //else return to connect
+        m_state = S_CONN;
         
     }
     

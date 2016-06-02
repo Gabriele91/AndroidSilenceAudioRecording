@@ -16,7 +16,7 @@
 #define MAX_CLIENTS 16
 #define SERVER_PORT 8000
 
-#if 1
+#if 0
 int main()
 {
     ////////
@@ -57,6 +57,9 @@ int main(void)
                 
             case S_CONN:
             {
+                //send meta info
+                listener.send_meta_info(server);
+                //
                 SHELL_CLEAR
                 std::cout << "is connected: start to rec or exit?\n";
                 //get input
@@ -65,14 +68,10 @@ int main(void)
                 //parse
                 if(command == "start")
                 {
-                    server.mutex().lock();
                     //alloc file
                     listener.create_file("test.wav");
                     //start
-                    server.send_start_msg(listener.address());
-                    listener.state() = S_REC;
-                    //stop
-                    server.mutex().unlock();
+                    listener.send_start(server);
                 }
                 if(command == "exit")
                 {
@@ -84,28 +83,16 @@ int main(void)
             case S_REC:
             {
                 SHELL_CLEAR
-                std::cout << "recodring: stop?\n";
+                std::cout << "recodring: stop or pause?\n";
                 //get input
                 std::string command;
                 std::cin >> command;
                 //parse
-                if(command == "stop")
-                {
-                    server.mutex().lock();
-                    server.send_stop_msg(listener.address());
-                    listener.state() = S_STOP;
-                    server.mutex().unlock();
-                }
-                //parse
-                if(command == "pause")
-                {
-                    server.mutex().lock();
-                    server.send_pause_msg(listener.address());
-                    listener.state() = S_PAUSE;
-                    server.mutex().unlock();
-                }
+                if(command == "stop") listener.send_stop(server);
+                if(command == "pause") listener.send_pause(server);
+    
             }
-                break;
+            break;
                 
             case S_PAUSE:
             {
@@ -115,21 +102,8 @@ int main(void)
                 std::string command;
                 std::cin >> command;
                 //parse
-                if(command == "continue")
-                {
-                    server.mutex().lock();
-                    server.send_start_msg(listener.address());
-                    listener.state() = S_REC;
-                    server.mutex().unlock();
-                }
-                //parse
-                if(command == "stop")
-                {
-                    server.mutex().lock();
-                    server.send_stop_msg(listener.address());
-                    listener.state() = S_STOP;
-                    server.mutex().unlock();
-                }
+                if(command == "continue") listener.send_start(server);
+                if(command == "stop") listener.send_stop(server);
             }
             break;
                 
@@ -146,7 +120,7 @@ int main(void)
                     //close file
                     listener.close_wav_file();
                     //end write
-                    listener.state() = S_CONN;
+                    listener.reset_state();
                 }
             }
             break;
