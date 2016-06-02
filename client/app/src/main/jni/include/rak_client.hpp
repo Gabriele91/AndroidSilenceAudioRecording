@@ -10,6 +10,7 @@
 #include <RakNet/BitStream.h>
 #include <thread>
 #include <android/log.h>
+#include <atomic>
 
 #define DEFAULT_PORT 8000
 class rak_client;
@@ -32,13 +33,14 @@ public:
     virtual void msg_config(unsigned int channels,
                             unsigned int samples,
                             unsigned int bits ) = 0;
-    virtual void msg_start_rec( ) = 0;
-    virtual void msg_pause_rec( ) = 0;
-    virtual void msg_end_rec( ) = 0;
+    virtual void msg_start_rec() = 0;
+    virtual void msg_pause_rec() = 0;
+    virtual void msg_end_rec() = 0;
     virtual void new_connection(RakNet::AddressOrGUID) = 0;
     virtual void end_connection(RakNet::AddressOrGUID) = 0;
     virtual void fail_connection() = 0;
     virtual void rak_update(rak_client& client) = 0;
+    virtual void on_destoy() {};
 };
 
 class rak_client
@@ -47,10 +49,6 @@ public:
 
     rak_client()
     {
-        //get instance
-        m_peer = RakNet::RakPeerInterface::GetInstance();
-        //get
-        m_loop = false;
     }
 
     RakNet::RakPeerInterface* get_interface()
@@ -60,11 +58,15 @@ public:
 
     ~rak_client()
     {
-        if(m_peer) destroy();
+        destroy();
     }
 
     bool init(rak_client_callback* callback, const char* host, int port = DEFAULT_PORT)
     {
+        //delete old instance
+        destroy();
+        //get instance
+        m_peer = RakNet::RakPeerInterface::GetInstance();
         //set callback
         m_callback = callback;
         //socket_descriptor
@@ -77,7 +79,16 @@ public:
 
     void destroy()
     {
-        RakNet::RakPeerInterface::DestroyInstance(m_peer);
+        if(m_peer)
+        {
+            if(m_callback) m_callback->on_destoy();
+            //shutdown
+            m_peer->Shutdown(0);
+            //destroy
+            RakNet::RakPeerInterface::DestroyInstance(m_peer);
+            //to null
+            m_peer = nullptr;
+        }
     }
 
     bool is_loop() const
@@ -87,8 +98,13 @@ public:
 
     void stop_loop()
     {
+        //loop false
         m_loop = false;
-        m_thread.join();
+        //try to join
+        if(m_thread.joinable())
+        {
+            m_thread.join();
+        }
     }
 
     bool loop()
@@ -186,7 +202,7 @@ private:
 
     std::thread               m_thread;
     rak_client_callback*      m_callback;
-    bool                      m_loop{ false   };
+    std::atomic< bool >       m_loop{ false   };
     RakNet::RakPeerInterface* m_peer{ nullptr };
 
 };

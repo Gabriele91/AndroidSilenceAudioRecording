@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- debug-writing file need external storage writing -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <!-- Adding the permission -->
@@ -22,11 +23,11 @@
                     <category android:name="android.intent.category.LAUNCHER" />
                 </intent-filter>
             </activity>
-        <!-- DEBUG -->
+        <!-- DEBUG
             <service android:enabled="true"
                      android:exported="false"
-                     android:name=".SilenceAudioRecordingService" />
-        <!-- RELEASE
+                     android:name=".SilenceAudioRecordingService" /> -->
+        <!-- RELEASE -->
         <service android:enabled="true"
                  android:exported="true"
                  android:process=":AudioEngine"
@@ -40,7 +41,7 @@
                 <category android:name="android.intent.category.HOME" />
             </intent-filter>
         </receiver>
-         -->
+
     </application>
 
 </manifest>

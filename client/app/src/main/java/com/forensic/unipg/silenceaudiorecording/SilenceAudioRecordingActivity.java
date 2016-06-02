@@ -7,7 +7,7 @@ import android.util.Log;
 
 public class SilenceAudioRecordingActivity extends AppCompatActivity {
 
-    private static final boolean debug = true;
+    private static final boolean debug = false;
 
     protected void onCreate(Bundle savedInstanceState)
     {

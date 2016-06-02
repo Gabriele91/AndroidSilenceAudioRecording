@@ -26,6 +26,8 @@
 		E06FA67F1CFC318D00C97184 /* rak_server */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rak_server; sourceTree = BUILT_PRODUCTS_DIR; };
 		E06FA68A1CFC31D800C97184 /* wave_riff.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = wave_riff.hpp; sourceTree = "<group>"; };
 		E06FA68C1CFC31D800C97184 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		E0A7837B1D0028D8009CEBAE /* rak_server.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = rak_server.hpp; sourceTree = "<group>"; };
+		E0A7837C1D004DE1009CEBAE /* server_listener.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = server_listener.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,6 +62,8 @@
 			isa = PBXGroup;
 			children = (
 				E06FA68A1CFC31D800C97184 /* wave_riff.hpp */,
+				E0A7837B1D0028D8009CEBAE /* rak_server.hpp */,
+				E0A7837C1D004DE1009CEBAE /* server_listener.hpp */,
 			);
 			name = include;
 			path = ../include;

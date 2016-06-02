@@ -127,6 +127,7 @@ public:
 #endif
     }
 
+
     virtual void msg_start_rec( )
     {
         if(m_state == END_REC || m_state == PAUSE_REC)
@@ -189,16 +190,16 @@ public:
             //encode
             m_encode_buffer.resize(m_buff_temp.size());
             //??*le to be*??//
-/*
-            630             case 0: newsize=sampling_rate/400; break;
-            631             case 1: newsize=sampling_rate/200; break;
-            632             case 2: newsize=sampling_rate/100; break;
-            633             case 3: newsize=sampling_rate/50; break;
-            634             case 4: newsize=sampling_rate/25; break;
-            635             case 5: newsize=3*sampling_rate/50; break;
-*/
+            #if 0
+            case 0: newsize=sampling_rate/400; break;
+            case 1: newsize=sampling_rate/200; break;
+            case 2: newsize=sampling_rate/100; break;
+            case 3: newsize=sampling_rate/50; break;
+            case 4: newsize=sampling_rate/25; break;
+            case 5: newsize=3*sampling_rate/50; break;
+            #endif
             //int16 buffer size
-            unsigned int buff16_div        = 100;
+            unsigned int buff16_div        = 25;
             unsigned int buff16_size       = m_buff_temp.size() / sizeof(opus_int16) ;
             unsigned int buff16_size_frame = buff16_size / buff16_div;
             opus_int16* buff16_ptr         = (opus_int16*)m_buff_temp.data();
@@ -313,8 +314,17 @@ extern "C"
 
     JNIEXPORT jboolean JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_stop( JNIEnv *env, jclass clazz )
     {
+        //stop
         java_global::client.stop_loop();
-        return (jboolean)!java_global::client.is_loop();
+        //stopped?
+        if(!java_global::client.is_loop())
+        {
+            //disable connection
+            java_global::client.destroy();
+            //return
+            return true;
+        }
+        return false;
     }
 
     JNIEXPORT jint JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_state( JNIEnv *env, jclass clazz )
