@@ -64,7 +64,7 @@ public class AudioEngine
 
     protected native void contextInit( int channels,  int samples_per_second, int bits_per_samples);
     protected native void contextClose();
-    public native void setOutputPath(String path);
+    public native void setOutputPath(String path,int port);
     public native void startRecording();
     public native void stopRecording();
     public native void pauseRecording();

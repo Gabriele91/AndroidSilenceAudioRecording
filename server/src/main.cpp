@@ -4,6 +4,7 @@
 #include <rak_server.hpp>
 //#define USE_RAW_AUDIO
 #include <server_listener.hpp>
+#include <server_websocket.hpp>
 
 #ifdef _WIN32
     #define SHELL_CLEAR system("cls");
@@ -14,9 +15,23 @@
 #define MAX_CLIENTS 16
 #define SERVER_PORT 8000
 
-
-
-
+#if 1
+int main()
+{
+    ////////
+    //ini server
+    rak_server server;
+    server.init(SERVER_PORT,MAX_CLIENTS);
+    //init listener
+    server_listener listener;
+    server.loop(listener);
+    //ini web soket
+    server_websocket interface(server,listener);
+    interface.loop();
+    ////////
+    return 0;
+}
+#else
 int main(void)
 {
     //ini server
@@ -141,3 +156,4 @@ int main(void)
 
 	return 0;
 }
+#endif

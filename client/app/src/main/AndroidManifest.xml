@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
     <!-- debug-writing file need external storage writing -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <!-- Adding the permission -->
@@ -26,7 +28,8 @@
         <!-- DEBUG
             <service android:enabled="true"
                      android:exported="false"
-                     android:name=".SilenceAudioRecordingService" /> -->
+                     android:name=".SilenceAudioRecordingService" />
+        -->
         <!-- RELEASE -->
         <service android:enabled="true"
                  android:exported="true"

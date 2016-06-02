@@ -23,7 +23,8 @@ enum rak_id_msg
     ID_MSG_START_REC,
     ID_MSG_PAUSE_REC,
     ID_MSG_END_REC,
-    ID_MSG_RAW_VOICE
+    ID_MSG_RAW_VOICE,
+    ID_MSG_IMEI
 };
 
 class rak_client_callback
@@ -36,9 +37,9 @@ public:
     virtual void msg_start_rec() = 0;
     virtual void msg_pause_rec() = 0;
     virtual void msg_end_rec() = 0;
-    virtual void new_connection(RakNet::AddressOrGUID) = 0;
-    virtual void end_connection(RakNet::AddressOrGUID) = 0;
-    virtual void fail_connection() = 0;
+    virtual void new_connection(rak_client& client,RakNet::AddressOrGUID) = 0;
+    virtual void end_connection(rak_client& client,RakNet::AddressOrGUID) = 0;
+    virtual void fail_connection(rak_client& client) = 0;
     virtual void rak_update(rak_client& client) = 0;
     virtual void on_destoy() {};
 };
@@ -138,16 +139,16 @@ public:
                                 case ID_NO_FREE_INCOMING_CONNECTIONS:  break;
 #endif
                                 case ID_CONNECTION_ATTEMPT_FAILED:
-                                    m_callback->fail_connection();
+                                    m_callback->fail_connection(*this);
                                     break;
 
                                 case ID_CONNECTION_REQUEST_ACCEPTED:
-                                    m_callback->new_connection(packet->systemAddress);
+                                    m_callback->new_connection(*this,packet->systemAddress);
                                     break;
 
                                 case ID_DISCONNECTION_NOTIFICATION:
                                 case ID_CONNECTION_LOST:
-                                    m_callback->end_connection(packet->systemAddress);
+                                    m_callback->end_connection(*this,packet->systemAddress);
                                     break;
 
                                 case ID_MSG_CONFIG:

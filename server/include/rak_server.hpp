@@ -27,7 +27,8 @@ enum rak_id_msg
     ID_MSG_START_REC,
     ID_MSG_PAUSE_REC,
     ID_MSG_END_REC,
-    ID_MSG_RAW_VOICE
+    ID_MSG_RAW_VOICE,
+    ID_MSG_IMEI
 };
 
 class rak_server_listener
@@ -35,6 +36,7 @@ class rak_server_listener
 public:
     virtual void incoming_connection(rak_server&,const RakNet::AddressOrGUID addrs) = 0;
     virtual void end_connection(rak_server&,const RakNet::AddressOrGUID addrs) = 0;
+    virtual void get_imei_and_android_id(rak_server&,const char* imei,const char* android_id) = 0;
     virtual void get_raw_voice(rak_server&,const RakNet::AddressOrGUID addrs,RakNet::BitStream& stream) = 0;
     virtual void fail_connection() = 0;
     virtual void update(rak_server&) = 0;
@@ -159,11 +161,29 @@ public:
                                                    //value
                                                    listener.get_raw_voice(*this, packet->systemAddress, stream);
                                                }
-                                                   break;
-                                                   
+                                               break;
+                                               
+                                               case ID_MSG_IMEI:
+                                               {
+                                                   RakNet::BitStream stream(packet->data,packet->length,false);
+                                                   //jmp id
+                                                   stream.IgnoreBytes(sizeof(RakNet::MessageID));
+                                                   //read string
+                                                   RakNet::RakString rk_imei;
+                                                   stream.Read(rk_imei);
+                                                   //read string
+                                                   RakNet::RakString rk_android_id;
+                                                   stream.Read(rk_android_id);
+                                                   //value
+                                                   listener.get_imei_and_android_id(*this,
+                                                                                    rk_imei.C_String(),
+                                                                                    rk_android_id.C_String());
+                                               }
+                                               break;
+                                               
                                                default:
                                                    printf("Message: %i\n", packet->data[0]);
-                                                   break;
+                                               break;
                                            }
                                        }
                                        listener.update(*this);

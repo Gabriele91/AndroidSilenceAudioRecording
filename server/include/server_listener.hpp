@@ -124,6 +124,11 @@ public:
     {
     }
     
+    virtual void get_imei_and_android_id(rak_server& server,const char* imei,const char* android_id)
+    {
+        
+    }
+    
     virtual void fail_connection()
     {
         //connected

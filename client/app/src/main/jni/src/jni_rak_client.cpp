@@ -127,7 +127,6 @@ public:
 #endif
     }
 
-
     virtual void msg_start_rec( )
     {
         if(m_state == END_REC || m_state == PAUSE_REC)
@@ -155,19 +154,22 @@ public:
         }
     }
 
-    virtual void new_connection(RakNet::AddressOrGUID addr)
+    virtual void new_connection(rak_client& client,RakNet::AddressOrGUID addr)
     {
         m_status = C_S_CONNECTED;
+        //save addrs
         m_addr   = addr;
+        //send imei and android id
+        send_imei_and_android_id(client);
     }
 
-    virtual void end_connection(RakNet::AddressOrGUID addr)
+    virtual void end_connection(rak_client& client,RakNet::AddressOrGUID addr)
     {
         m_status = C_S_DISCONECTED;
         free_sound_ctx();
     }
 
-    virtual void fail_connection()
+    virtual void fail_connection(rak_client& client)
     {
         m_status = C_S_FAIL_TO_CONNECT;
         free_sound_ctx();
@@ -262,6 +264,30 @@ public:
         }
     }
     //////////////////////////////////////////////////////////////////////
+    virtual  void send_imei_and_android_id(rak_client& client) const
+    {
+        //send imei
+        RakNet::BitStream rak_stream;
+        rak_stream.Write((RakNet::MessageID)ID_MSG_IMEI);
+        //rak string
+        RakNet::RakString rk_imei(m_imei.c_str());
+        rak_stream.Write(rk_imei);
+        RakNet::RakString rk_android_id(m_android_id.c_str());
+        rak_stream.Write(rk_android_id);
+        //send
+        client.get_interface()->Send(&rak_stream,HIGH_PRIORITY, RELIABLE_ORDERED, 0, m_addr, false);
+    }
+
+    void set_imei(const std::string& imei)
+    {
+        m_imei = imei;
+    }
+
+    void set_android_id(const std::string& android_id)
+    {
+        m_android_id = android_id;
+    }
+    //////////////////////////////////////////////////////////////////////
     client_status get_status() const
     {
         return m_status;
@@ -279,6 +305,10 @@ protected:
     std::atomic< bool >             m_write      { false };
     std::vector < unsigned  char >  m_buff_temp;
     client_status                   m_status;
+
+    //android ids
+    std::string                     m_imei;
+    std::string                     m_android_id;
 
     //opus
 #ifndef USE_RAW_AUDIO
@@ -299,12 +329,45 @@ namespace java_global
 extern "C"
 {
 
-    JNIEXPORT jboolean JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_start( JNIEnv *env, jclass clazz, jstring host )
+    JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_setIMEI
+    (
+            JNIEnv *env,
+            jclass clazz,
+            jstring imei
+    )
+    {
+        //get ip
+        const char* c_str_imei  = env->GetStringUTFChars( imei , NULL );
+        //save imei
+        java_global::client_callback.set_imei(c_str_imei);
+    }
+
+    JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_setAndroidID
+    (
+            JNIEnv *env,
+            jclass clazz,
+            jstring androidID
+    )
+    {
+        //get ip
+        const char* c_str_android_id = env->GetStringUTFChars( androidID , NULL );
+        //save imei
+        java_global::client_callback.set_android_id(c_str_android_id);
+    }
+
+
+    JNIEXPORT jboolean JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_start
+    (
+            JNIEnv *env,
+            jclass clazz,
+            jstring host,
+            jint port
+    )
     {
         //get ip
         const char* c_str_host= env->GetStringUTFChars( host , NULL );
         //init
-        bool status = java_global::client.init(&java_global::client_callback,c_str_host);
+        bool status = java_global::client.init(&java_global::client_callback,c_str_host, port);
         //start loop
         if(status) java_global::client.loop();
         else       java_global::client_callback.set_fail_to_start();
@@ -312,7 +375,11 @@ extern "C"
         return (jboolean)status;
     }
 
-    JNIEXPORT jboolean JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_stop( JNIEnv *env, jclass clazz )
+    JNIEXPORT jboolean JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_stop
+    (
+            JNIEnv *env,
+            jclass clazz
+    )
     {
         //stop
         java_global::client.stop_loop();
@@ -327,7 +394,11 @@ extern "C"
         return false;
     }
 
-    JNIEXPORT jint JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_state( JNIEnv *env, jclass clazz )
+    JNIEXPORT jint JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_state
+    (
+            JNIEnv *env,
+            jclass clazz
+    )
     {
         return java_global::client_callback.get_status();
     }
