@@ -4,6 +4,7 @@
 #include <rak_server.hpp>
 //#define USE_RAW_AUDIO
 #include <server_listener.hpp>
+#include <server_listener_manager.hpp>
 #include <server_websocket.hpp>
 
 #ifdef _WIN32
@@ -23,10 +24,10 @@ int main()
     rak_server server;
     server.init(SERVER_PORT,MAX_CLIENTS);
     //init listener
-    server_listener listener;
-    server.loop(listener);
+    server_listener_manager<server_listener> manager_listeners;
+    server.loop(manager_listeners);
     //ini web soket
-    server_websocket interface(server,listener);
+    server_websocket interface(server,manager_listeners);
     interface.loop();
     ////////
     return 0;

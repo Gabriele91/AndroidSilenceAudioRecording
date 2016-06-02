@@ -29,19 +29,11 @@ public:
     server_listener()
     {
         //default metainfo
-        m_info = input_meta_info
-        {
+        init({
             1,
             8000,
             16
-        };
-        
-#ifndef USE_RAW_AUDIO
-        //alloc decoder
-        m_decoder = opus_decoder_create(m_info.m_samples_per_sec, m_info.m_channels, &m_error);
-        //alloc buffer
-        m_buf_dec.resize(m_info.m_channels*m_info.m_samples_per_sec*m_info.m_bits_per_sample/8);
-#endif
+        });
     }
     ~server_listener()
     {
@@ -50,14 +42,23 @@ public:
 #endif
     }
     
-    
+    virtual void init(const input_meta_info& info)
+    {
+        //default metainfo
+        m_info = info;
+        //init decoder
+#ifndef USE_RAW_AUDIO
+        //alloc decoder
+        m_decoder = opus_decoder_create(m_info.m_samples_per_sec, m_info.m_channels, &m_error);
+        //alloc buffer
+        m_buf_dec.resize(m_info.m_channels*m_info.m_samples_per_sec*m_info.m_bits_per_sample/8);
+#endif
+    }
     
     virtual void incoming_connection(rak_server& server, const RakNet::AddressOrGUID addr)
     {
         //save addr
         m_addr = addr;
-        //send tipe
-        server.send_config_msg(addr, m_info.m_channels, m_info.m_samples_per_sec, m_info.m_bits_per_sample);
         //connected
         m_state = S_CONN;
     }
@@ -124,12 +125,13 @@ public:
     {
     }
     
-    virtual void get_imei_and_android_id(rak_server& server,const char* imei,const char* android_id)
+    virtual void get_imei_and_android_id(rak_server& server,const RakNet::AddressOrGUID,const char* imei,const char* android_id)
     {
-        
+        m_imei = imei;
+        m_android_id = m_android_id;
     }
     
-    virtual void fail_connection()
+    virtual void fail_connection(rak_server&, const RakNet::AddressOrGUID)
     {
         //connected
         m_state = S_DISC;
@@ -145,6 +147,42 @@ public:
     RakNet::AddressOrGUID& address()
     {
         return m_addr;
+    }
+    
+    void send_start(rak_server& server) const
+    {
+        server.mutex().lock();
+        //send type
+        server.send_start_msg(m_addr);
+        //end
+        server.mutex().unlock();
+    }
+    
+    void send_pause(rak_server& server) const
+    {
+        server.mutex().lock();
+        //send type
+        server.send_pause_msg(m_addr);
+        //end
+        server.mutex().unlock();
+    }
+    
+    void send_stop(rak_server& server) const
+    {
+        server.mutex().lock();
+        //send type
+        server.send_stop_msg(m_addr);
+        //end
+        server.mutex().unlock();
+    }
+    
+    void send_meta_info(rak_server& server) const
+    {
+        server.mutex().lock();
+        //send tipe
+        server.send_config_msg(m_addr, m_info.m_channels, m_info.m_samples_per_sec, m_info.m_bits_per_sample);
+        //end
+        server.mutex().unlock();
     }
     
     void create_file(const std::string& path)
@@ -170,6 +208,16 @@ public:
         }
     }
     
+    const std::string& get_imei() const
+    {
+        return m_imei;
+    }
+    
+    const std::string& get_android_id() const
+    {
+        return m_android_id;
+    }
+    
 protected:
     
     //data info
@@ -178,6 +226,8 @@ protected:
     wav_riff              m_wav;
     RakNet::AddressOrGUID m_addr;
     atomic_listener_state m_state { S_DISC };
+    std::string           m_imei;
+    std::string           m_android_id;
     
 #ifndef USE_RAW_AUDIO
     //sound codec

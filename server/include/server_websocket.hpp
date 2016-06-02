@@ -7,6 +7,7 @@
 //
 #pragma once
 #include <server_listener.hpp>
+#include <server_listener_manager.hpp>
 #define ASIO_STANDALONE
 #define ASIO_HAS_STD_ADDRESSOF
 #define ASIO_HAS_STD_ARRAY
@@ -14,7 +15,7 @@
 #define ASIO_HAS_STD_SHARED_PTR
 #define ASIO_HAS_STD_TYPE_TRAITS
 #define _WEBSOCKETPP_CPP11_FUNCTIONAL_
-#define _WEBSOCKETPP_CPP11_FUNCTIONAL_
+#define _WEBSOCKETPP_CPP11_TYPE_TRAITS_
 #define _WEBSOCKETPP_CPP11_SYSTEM_ERROR_
 #define _WEBSOCKETPP_CPP11_RANDOM_DEVICE_
 #define _WEBSOCKETPP_CPP11_MEMORY_
@@ -26,8 +27,12 @@ class server_websocket
 public:
     
     //type of server
+    using listeners    = server_listener_manager<server_listener>;
     using asio_server  = websocketpp::server<websocketpp::config::asio> ;
     using message_ptr  = asio_server::message_ptr ;
+    using address_v4   = websocketpp::lib::asio::ip::address_v4;
+    using address_v6   = websocketpp::lib::asio::ip::address_v6;
+    using error_code   = websocketpp::lib::error_code;
     
     static  void on_message(asio_server* s, websocketpp::connection_hdl hdl, message_ptr msg)
     {
@@ -42,9 +47,9 @@ public:
         }
     };
     
-    server_websocket(rak_server& server,server_listener& listener)
+    server_websocket(rak_server& server,listeners& listener)
     :m_server(server)
-    ,m_listener(listener)
+    ,m_listeners(listener)
     {
         // Set logging settings
         m_asio_server.set_access_channels(websocketpp::log::alevel::all);
@@ -67,36 +72,25 @@ public:
     
     void open_file(const std::string& file)
     {
-        m_server.mutex().lock();
         //alloc file
-        m_listener.create_file(file);
-        //stop
-        m_server.mutex().unlock();
+        m_listeners.first().create_file(file);
     }
     
     void close_file()
     {
-        m_server.mutex().lock();
-        //close file
-        m_listener.close_wav_file();
-        //stop
-        m_server.mutex().unlock();
+        m_listeners.first().close_wav_file();
     }
     
     void star_rec(const std::string& file)
     {
-        m_server.mutex().lock();
-        m_server.send_stop_msg(m_listener.address());
-        m_listener.state() = S_REC;
-        m_server.mutex().unlock();
+        m_listeners.first().send_start(m_server);
+        m_listeners.first().state() = S_REC;
     }
     
     void stop_rec(const std::string& file)
     {
-        m_server.mutex().lock();
-        m_server.send_stop_msg(m_listener.address());
-        m_listener.state() = S_STOP;
-        m_server.mutex().unlock();
+        m_listeners.first().send_stop(m_server);
+        m_listeners.first().state() = S_STOP;
     }
     
     ~server_websocket()
@@ -106,9 +100,9 @@ public:
     
 private:
 
-    rak_server&      m_server;
-    server_listener& m_listener;
-    asio_server      m_asio_server;
+    rak_server&  m_server;
+    listeners&   m_listeners;
+    asio_server  m_asio_server;
     
 };
 

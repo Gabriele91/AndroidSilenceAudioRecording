@@ -29,6 +29,7 @@
 		E0A7837B1D0028D8009CEBAE /* rak_server.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = rak_server.hpp; sourceTree = "<group>"; };
 		E0A7837C1D004DE1009CEBAE /* server_listener.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = server_listener.hpp; sourceTree = "<group>"; };
 		E0C607FD1D00862100849E16 /* server_websocket.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = server_websocket.hpp; sourceTree = "<group>"; };
+		E0E4823A1D00F04000AABB06 /* server_listener_manager.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = server_listener_manager.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +65,7 @@
 			children = (
 				E06FA68A1CFC31D800C97184 /* wave_riff.hpp */,
 				E0A7837B1D0028D8009CEBAE /* rak_server.hpp */,
+				E0E4823A1D00F04000AABB06 /* server_listener_manager.hpp */,
 				E0A7837C1D004DE1009CEBAE /* server_listener.hpp */,
 				E0C607FD1D00862100849E16 /* server_websocket.hpp */,
 			);

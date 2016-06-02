@@ -36,9 +36,9 @@ class rak_server_listener
 public:
     virtual void incoming_connection(rak_server&,const RakNet::AddressOrGUID addrs) = 0;
     virtual void end_connection(rak_server&,const RakNet::AddressOrGUID addrs) = 0;
-    virtual void get_imei_and_android_id(rak_server&,const char* imei,const char* android_id) = 0;
+    virtual void get_imei_and_android_id(rak_server&,const RakNet::AddressOrGUID addrs,const char* imei,const char* android_id) = 0;
     virtual void get_raw_voice(rak_server&,const RakNet::AddressOrGUID addrs,RakNet::BitStream& stream) = 0;
-    virtual void fail_connection() = 0;
+    virtual void fail_connection(rak_server&,const RakNet::AddressOrGUID addrs) = 0;
     virtual void update(rak_server&) = 0;
 };
 
@@ -143,7 +143,7 @@ public:
                                                    break;
                                                    
                                                case ID_CONNECTION_ATTEMPT_FAILED:
-                                                   listener.fail_connection();
+                                                   listener.fail_connection(*this,packet->systemAddress);
                                                    break;
                                                    
                                                case ID_NO_FREE_INCOMING_CONNECTIONS: break;
@@ -176,6 +176,7 @@ public:
                                                    stream.Read(rk_android_id);
                                                    //value
                                                    listener.get_imei_and_android_id(*this,
+                                                                                    packet->systemAddress,
                                                                                     rk_imei.C_String(),
                                                                                     rk_android_id.C_String());
                                                }
