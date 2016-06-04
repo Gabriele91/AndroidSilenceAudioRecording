@@ -63,7 +63,7 @@ void q_settings::applay_settings()
        unsigned int samples  = m_ui->m_cb_samples->currentText().toInt();
        m_listener->init({
                             channels,
-                            samples,
+                            channels*samples,
                             16
                         });
        m_listener->send_meta_info(m_asar->get_rak_server());
