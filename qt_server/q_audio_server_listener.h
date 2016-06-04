@@ -22,7 +22,6 @@
 #include <QApplication>
 #include <iostream>
 #include <QDebug>
-#include "q_audio_output.h"
 
 enum listener_state
 {
@@ -79,14 +78,11 @@ public:
         //connected
         m_state = S_DISC;
         //close file
-        //close_wav_file();
         //not connected
         m_connected = false;
     }
 
-    virtual void get_raw_voice(rak_server& server,
-                               const RakNet::AddressOrGUID addrs,
-                               RakNet::BitStream& stream)
+    virtual void get_raw_voice(rak_server& server,const RakNet::AddressOrGUID addrs,RakNet::BitStream& stream)
     {
         //ptr buffer
         int         buff16_size = (int)m_buf_dec.size() / sizeof(opus_int16);
@@ -123,9 +119,9 @@ public:
         //write file
         if(m_file) m_wav.append((void*)m_buf_dec.data(), data_size, wav_riff::BE_MODE);
         //audio in debug
-        qDebug() << "sound arrived: " << data_size ;
+        qDebug() << "sound arrived: " << data_size;
         //write buffer
-        m_audio_output.output((const char*)m_buf_dec.data(),data_size);
+        m_buffer.append((const char*)m_buf_dec.data(),data_size);
     }
 
     virtual void update(rak_server& server)
@@ -145,6 +141,7 @@ public:
     {
         //connected
         m_state = S_DISC;
+        //close file
         //not connected
         m_connected = false;
     }
@@ -168,16 +165,6 @@ public:
         m_state = S_REC;
         //end
         server.mutex().unlock();
-    }
-
-    void output_play()
-    {
-        m_audio_output.start();
-    }
-
-    void output_stop()
-    {
-        m_audio_output.stop();
     }
 
     void send_pause(rak_server& server)
@@ -259,17 +246,95 @@ public:
         return m_connected;
     }
 
+    void output_play()
+    {
+        //set buffer
+        m_audio_output_device.close();
+        m_audio_output_device.reset();
+        m_audio_output_device.setBuffer(&m_buffer);
+        m_audio_output_device.open(QIODevice::ReadOnly);
+        //start
+        m_q_audio_out->reset();
+        m_q_audio_out->start(&m_audio_output_device);
+    }
+
+    void output_stop()
+    {
+        m_q_audio_out->stop();
+        m_audio_output_device.close();
+        m_buffer.resize(0);
+    }
+
 protected:
 
     //audio device
-    q_audio_output m_audio_output;
+    QAudioOutput*  m_q_audio_out   { nullptr };
+    QIODevice*     m_q_audio_device{ nullptr };
+    QByteArray     m_buffer;
+    QBuffer        m_audio_output_device;
     //init
     void init_q_audio()
     {
-        m_audio_output.init(m_info.m_bits_per_sample,
-                            m_info.m_channels,
-                            m_info.m_samples_per_sec);
-        m_audio_output.set_volume(1.0);
+        if(m_q_audio_out || m_q_audio_device)
+        {
+            //stop rip
+            if(m_q_audio_out->state() == QAudio::StoppedState)
+            {
+                m_q_audio_out->stop();
+            }
+            //close device
+            if(m_q_audio_device && m_q_audio_device->isOpen())
+            {
+                m_q_audio_device->close();
+            }
+            //delete device
+            if(m_q_audio_device) delete m_q_audio_device;
+            if(m_q_audio_out)    delete m_q_audio_out;
+        }
+        //set format
+        QAudioFormat format;
+        format.setSampleRate(m_info.m_samples_per_sec);
+        format.setChannelCount(m_info.m_channels);
+        format.setSampleSize(m_info.m_bits_per_sample);
+        format.setCodec("audio/pcm");
+        format.setByteOrder(QAudioFormat::LittleEndian);
+        format.setSampleType(QAudioFormat::SignedInt);
+        //if 0 buffer
+        if(!m_buffer.size())
+        {
+            m_buffer.resize(m_info.m_samples_per_sec*
+                            m_info.m_channels*
+                            (m_info.m_bits_per_sample / 8));
+            m_buffer.fill(0);
+        }
+        //audio info
+        QAudioDeviceInfo info(QAudioDeviceInfo::defaultOutputDevice());
+        //test
+        if (!info.isFormatSupported(format))
+        {
+            //remade format
+            format = info.nearestFormat(format);
+        }
+        //autput
+        m_q_audio_out   = new QAudioOutput(format);
+        //set buffer
+        m_audio_output_device.close();
+        m_audio_output_device.setBuffer(&m_buffer);
+        m_audio_output_device.open(QIODevice::ReadOnly);
+        //volume max
+        m_q_audio_out->setVolume(1.0);
+        //connect
+        QObject::connect(m_q_audio_out,&QAudioOutput::stateChanged,
+        [this](QAudio::State state)
+        {
+            if (state == QAudio::IdleState && m_state == S_REC)
+            {
+                m_audio_output_device.close();
+                m_audio_output_device.setBuffer(&m_buffer);
+                m_audio_output_device.open(QIODevice::ReadOnly);
+                qDebug()<< "added some data\n";
+            }
+        });
     }
     //data info
     input_meta_info       m_info;
@@ -281,7 +346,7 @@ protected:
     std::string           m_android_id;
     bool                  m_connected{ false };
     //sound codec
-    OpusDecoder*                  m_decoder { nullptr };
+    OpusDecoder*                  m_decoder;
     int                           m_error;
     std::vector< unsigned char >  m_buf_dec;
 

@@ -99,6 +99,7 @@ void q_settings::play_or_pause()
         if ( m_listener->state()==S_REC )
         {
             m_listener->send_pause(m_asar->get_rak_server());
+            m_listener->output_stop();
         }
         //in any case
         m_ui->m_cb_play_stop->setText("PLAY");
