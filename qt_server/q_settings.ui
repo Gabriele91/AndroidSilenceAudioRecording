@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>q_settings</class>
+ <widget class="QWidget" name="q_settings">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>524</width>
+    <height>324</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="accessibleName">
+   <string/>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="m_lb_title">
+     <property name="text">
+      <string>Android id: NONE | Status: disconnected</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="m_hl_1">
+     <item>
+      <widget class="QGroupBox" name="m_gb_settings">
+       <property name="title">
+        <string>Settings</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <layout class="QVBoxLayout" name="m_vl_1">
+          <item>
+           <layout class="QHBoxLayout" name="m_hl_0">
+            <item>
+             <widget class="QLabel" name="m_lb_samples">
+              <property name="text">
+               <string>Samples</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="m_cb_samples">
+              <item>
+               <property name="text">
+                <string>8000</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>16000</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>22000</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="m_lb_channels">
+              <property name="text">
+               <string>Channels</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="m_cb_channels">
+              <item>
+               <property name="text">
+                <string>1</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>2</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="m_pb_applay">
+            <property name="text">
+             <string>Applay</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="m_gb_output">
+       <property name="title">
+        <string>Output file</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <layout class="QHBoxLayout" name="m_hl_output">
+          <item>
+           <widget class="QPushButton" name="m_pb_path">
+            <property name="text">
+             <string>...</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="m_le_path"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QPushButton" name="m_pb_save">
+          <property name="text">
+           <string>save</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="m_gb_player">
+     <property name="title">
+      <string>Player</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <layout class="QVBoxLayout" name="m_vl_player">
+        <item>
+         <widget class="QCheckBox" name="m_cb_listen">
+          <property name="text">
+           <string>Listen</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="m_cb_play_stop">
+          <property name="text">
+           <string>PLAY</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QPushButton" name="m_pb_back">
+     <property name="text">
+      <string>Back</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>m_pb_back</sender>
+   <signal>clicked()</signal>
+   <receiver>q_settings</receiver>
+   <slot>back_to_device_list()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>195</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>195</x>
+     <y>137</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_pb_applay</sender>
+   <signal>clicked()</signal>
+   <receiver>q_settings</receiver>
+   <slot>applay_settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>161</x>
+     <y>107</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>261</x>
+     <y>161</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_cb_play_stop</sender>
+   <signal>clicked()</signal>
+   <receiver>q_settings</receiver>
+   <slot>play_or_pause()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>261</x>
+     <y>210</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>261</x>
+     <y>161</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>back_to_device_list()</slot>
+  <slot>applay_settings()</slot>
+  <slot>select_path()</slot>
+  <slot>save()</slot>
+  <slot>play_or_pause()</slot>
+  <slot>stop()</slot>
+ </slots>
+</ui>

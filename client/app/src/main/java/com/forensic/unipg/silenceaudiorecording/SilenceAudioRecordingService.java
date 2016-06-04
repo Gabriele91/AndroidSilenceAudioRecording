@@ -23,7 +23,7 @@ public class SilenceAudioRecordingService extends Service implements Runnable
     }
 
     //server values
-    private final String  mHost = "192.168.1.66";
+    private final String  mHost = "192.168.1.134";
     private final int     mPort = 8000;
     //thread values
     private Thread  mThread = null;

@@ -15,7 +15,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "128"
             endingLineNumber = "128"
-            landmarkName = "get_imei_and_android_id(rak_server&amp; server,const RakNet::AddressOrGUID,const char* imei,const char* android_id)"
+            landmarkName = "update(rak_server&amp; server)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
