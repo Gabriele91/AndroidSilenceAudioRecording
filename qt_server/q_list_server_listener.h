@@ -67,14 +67,20 @@ public:
 
     virtual void end_connection(rak_server& server,const RakNet::AddressOrGUID addrs)
     {
+        //listener
+        auto it_listeners = m_listeners.find(addrs.ToString());
         //get row;
-        auto& row = m_listeners[addrs.ToString()];
-        //call listner
-        row.m_listener.end_connection(server,addrs);
-        //set info
-        row.m_item->setText(build_item_string(QString::fromUtf8(row.m_listener.get_android_id().c_str()),
-                                              QString::fromUtf8(row.m_listener.get_imei().c_str()),
-                                              true));
+        if(it_listeners != m_listeners.end())
+        {
+            //get row
+            auto& row = it_listeners->second;
+            //set info
+            row.m_item->setText(build_item_string(QString::fromUtf8(row.m_listener.get_android_id().c_str()),
+                                                  QString::fromUtf8(row.m_listener.get_imei().c_str()),
+                                                  false));
+            //call listner
+            row.m_listener.end_connection(server,addrs);
+        }
     }
 
     virtual void get_imei_and_android_id(rak_server& server,
@@ -82,28 +88,51 @@ public:
                                          const char* imei,
                                          const char* android_id)
     {
+
+        //listener
+        auto it_listeners = m_listeners.find(addrs.ToString());
         //get row;
-        auto& row = m_listeners[addrs.ToString()];
-        //call listner
-        row.m_listener.get_imei_and_android_id(server, addrs, imei,android_id);
-        //set info
-        row.m_item->setText(build_item_string(android_id,imei,true));
+        if(it_listeners != m_listeners.end())
+        {
+            //get row
+            auto& row = it_listeners->second;
+            //call listner
+            row.m_listener.get_imei_and_android_id(server, addrs, imei,android_id);
+            //set info
+            row.m_item->setText(build_item_string(android_id,imei,true));
+        }
     }
 
     virtual void get_raw_voice(rak_server& server ,const RakNet::AddressOrGUID addrs,RakNet::BitStream& stream)
     {
+        //listener
+        auto it_listeners = m_listeners.find(addrs.ToString());
         //get row;
-        auto& row = m_listeners[addrs.ToString()];
-        //call listner
-        row.m_listener.get_raw_voice(server,addrs,stream);
+        if(it_listeners != m_listeners.end())
+        {
+            //get row
+            auto& row = it_listeners->second;
+            //call listner
+            row.m_listener.get_raw_voice(server,addrs,stream);
+        }
     }
 
     virtual void fail_connection(rak_server& server, const RakNet::AddressOrGUID addrs)
     {
+        //listener
+        auto it_listeners = m_listeners.find(addrs.ToString());
         //get row;
-        auto& row = m_listeners[addrs.ToString()];
-        //call listner
-        row.m_listener.fail_connection(server,addrs);
+        if(it_listeners != m_listeners.end())
+        {
+            //get row
+            auto& row = it_listeners->second;
+            //set info
+            row.m_item->setText(build_item_string(QString::fromUtf8(row.m_listener.get_android_id().c_str()),
+                                                  QString::fromUtf8(row.m_listener.get_imei().c_str()),
+                                                  false));
+            //call listner
+            row.m_listener.fail_connection(server,addrs);
+        }
     }
 
     virtual void update(rak_server& server)

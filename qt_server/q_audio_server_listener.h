@@ -77,7 +77,6 @@ public:
     {
         //connected
         m_state = S_DISC;
-        //close file
         //not connected
         m_connected = false;
     }
