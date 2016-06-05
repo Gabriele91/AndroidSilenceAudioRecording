@@ -3,6 +3,7 @@
 #include <q_android_silence_audio_recording.h>
 #include <q_audio_server_listener.h>
 #include <QString>
+#include <string>
 q_settings::q_settings(q_android_silence_audio_recording *parent)
 :QWidget(parent)
 ,m_asar(parent)
@@ -190,25 +191,78 @@ void q_settings::applay_settings()
    }
 }
 
+static bool create_file_md5(const QString &file_path)
+{
+   QFile i_file(file_path);
+   QFile o_file(file_path+".md5");
+   QCryptographicHash hash(QCryptographicHash::Md5);
+   QByteArray hash_res;
+
+   if (i_file.open(QFile::ReadOnly) &&
+       o_file.open(QFile::WriteOnly) &&
+       hash.addData(&i_file))
+   {
+       //get res
+       hash_res = hash.result();
+       //write to file
+       o_file.write(hash_res.toHex());
+       //ok
+       return true;
+   }
+   return false;
+}
+
 void q_settings::save()
 {
     if(m_listener)
     {
-        QString filename = QFileDialog::getSaveFileName
+        QString file_path_name = QFileDialog::getSaveFileName
                 (  this,
                    tr("Save recording"),
                    m_last_path,
                    tr("Waveform Audio File Format (*.wav)")
                 );
-
-        if(!m_listener->save_file(filename.toUtf8().constData()) && filename!=QString::null )
+        //cancel
+        if(file_path_name==QString::null) return;
+        //get data
+        QDate this_date = QDateTime::currentDateTime().date();
+        //build string
+        std::string date_str =       std::to_string(this_date.year())
+                                +"-"+std::to_string(this_date.month())
+                                +"-"+std::to_string(this_date.day());
+        //only file name
+        QString q_file_name        = QFileInfo(file_path_name).baseName();
+        std::string only_file_name = q_file_name.toStdString();
+        //INFO META
+        wav_riff::info_fields fields =
         {
-            QMessageBox::about(this,"Abort","Fail to save file.\nCan't save : "+filename);
+            {  {'I','N','A','M'}, only_file_name                        },
+            {  {'I','A','R','T'}, "Android Silence Audio Recording, "
+                                  +m_listener->get_android_id()
+            },
+            {  {'I','C','O','P'}, "Gabriele Di Bari, Giulio Biondi"     },
+            {  {'I','C','M','T'},
+                "File generated with AndroidSilenceAudioRecording.\n"
+                "Android id: "+m_listener->get_android_id() +"\n"
+                "IMEI id: "   +m_listener->get_imei() +"\n"
+                "date: "      +date_str
+            },
+            {  {'I','C','R','D'}, date_str }
+        };
+        //try to save
+        if(m_listener->save_file(file_path_name.toStdString(), fields))
+        {
+            //save last valid path
+            m_last_path = file_path_name;
+            //create md5 file
+            if(!create_file_md5(file_path_name))
+            {
+                QMessageBox::about(this,"Abort","Fail to create hash file.\nCan't save : "+file_path_name+".md5");
+            }
         }
         else
         {
-            //save last valid path
-            m_last_path = filename;
+            QMessageBox::about(this,"Abort","Fail to save file.\nCan't save : "+file_path_name);
         }
     }
 }

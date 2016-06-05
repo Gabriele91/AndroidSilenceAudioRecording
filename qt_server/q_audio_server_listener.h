@@ -291,7 +291,9 @@ public:
         m_connection_cb = callback;
     }
 
-    bool save_file(const std::string& path, bool clear=false)
+    bool save_file(const std::string& path,
+                   const wav_riff::info_fields& info,
+                   bool clear=false)
     {
         //attributes
         FILE* m_file = nullptr;
@@ -307,6 +309,8 @@ public:
             m_wav.append((void*)m_file_buffer.data(), m_file_buffer.size(), wav_riff::BE_MODE);
             //compute size
             m_wav.complete();
+            //add meta info
+            if(info.size()) m_wav.append_info(info);
             //close
             fclose(m_file);
             //clear

@@ -44,7 +44,7 @@ struct input_meta_info
 class wav_riff
 {
 public:
-    ASPACKED(struct riff_header
+    ASPACKED(struct riff_or_list_header
             {
                 char         m_chunk_id[4];
                 unsigned int m_chunk_size;
@@ -76,6 +76,12 @@ public:
                  char         m_data[1];
              });
 
+    ASPACKED(struct chunk_header
+             {
+                 char         m_subchunk2_id[4];
+                 unsigned int m_subchunk2_size;
+             });
+
     enum endianness
     {
         LE_MODE,
@@ -88,10 +94,10 @@ public:
         m_file             = file;
         m_bits_per_sample  = info.m_bits_per_sample;
         //init
-        riff_header riff =
+        riff_or_list_header riff =
                 {
                         {'R','I', 'F', 'F'},
-                        sizeof(riff_header),
+                        44,                 //default riff size
                         {'W','A', 'V', 'E'}
                 };
 
@@ -122,7 +128,7 @@ public:
                 0
         };
         //write header riff
-        std::fwrite(&riff, sizeof(riff_header), 1, m_file);
+        std::fwrite(&riff, sizeof(riff_or_list_header), 1, m_file);
         //write header fmt
         std::fwrite(&fmt,  sizeof(fmt_header), 1, m_file);
         //write header data
@@ -157,19 +163,19 @@ public:
         //at end get file size
         size_t size_file = std::ftell(m_file);
         ////////////////////////////////////////////////////////////////////////////////////
-        std::fseek(m_file,offsetof(riff_header,m_chunk_size),SEEK_SET);
+        std::fseek(m_file,offsetof(riff_or_list_header,m_chunk_size),SEEK_SET);
         //write size of the rest file
         unsigned int riff_chunk_size = size_file - 8;
         std::fwrite(&riff_chunk_size,sizeof(riff_chunk_size), 1,m_file);
         ////////////////////////////////////////////////////////////////////////////////////
         //set pos
-        const size_t size_data_pos =    sizeof(riff_header)
+        const size_t size_data_pos =    sizeof(riff_or_list_header)
                                       + sizeof(fmt_header)
                                       + offsetof(date_header_write,m_subchunk2_size);
         std::fseek(m_file,size_data_pos,SEEK_SET);
         //compute size
         unsigned int size_data =   size_file
-                                 - sizeof(riff_header)
+                                 - sizeof(riff_or_list_header)
                                  - sizeof(fmt_header)
                                  - sizeof(date_header_write);
         //write size
@@ -177,6 +183,46 @@ public:
         ////////////////////////////////////////////////////////////////////////////////////
         //set to end
         std::fseek(m_file,0,SEEK_END);
+    }
+
+    //field struct
+    struct info_field
+    {
+        char m_type[4];
+        std::string m_value;
+    };
+    //fields
+    using info_fields =  std::vector< info_field >;
+    //append
+    void append_info(const info_fields& all_info)
+    {
+        //all string size
+        unsigned int all_str_size = 0;
+        //compute all string size
+        for(auto& info:all_info) all_str_size += info.m_value.size() + 1;
+        //info size
+        unsigned int list_info_size;
+        //compute size
+        list_info_size = sizeof(riff_or_list_header)-8;
+        list_info_size+= sizeof(chunk_header)*all_info.size();
+        list_info_size+= all_str_size;
+        //init
+        riff_or_list_header list =
+        {
+            {'L','I', 'S', 'T'},
+            list_info_size,
+            {'I','N', 'F', 'O'}
+        };
+        //write header info
+        std::fwrite(&list, sizeof(riff_or_list_header), 1, m_file);
+        //write all info
+        for(auto& info:all_info)
+        {
+            unsigned int info_str_size = info.m_value.size()+1;
+            std::fwrite(info.m_type,         sizeof(char)*4,       1, m_file);
+            std::fwrite(&info_str_size,      sizeof(unsigned int), 1, m_file);
+            std::fwrite(info.m_value.data(), info_str_size,        1, m_file);
+        }
     }
 
     static unsigned short endian_uint16_conversion(unsigned short word)
