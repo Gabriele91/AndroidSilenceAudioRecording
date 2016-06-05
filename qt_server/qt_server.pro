@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui multimedia
+QT += core gui multimedia printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -26,6 +26,10 @@ HEADERS  += q_android_silence_audio_recording.h \
 
 FORMS    += q_android_silence_audio_recording.ui \
     q_settings.ui
+
+#qcustomplot
+SOURCES += qcustomplot/qcustomplot.cpp
+HEADERS += qcustomplot/qcustomplot.h
 
 #dependencies headers
 INCLUDEPATH += $$PWD/../server/dependencies/include

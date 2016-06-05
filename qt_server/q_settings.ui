@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>524</width>
-    <height>324</height>
+    <width>500</width>
+    <height>392</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,68 +34,43 @@
        <property name="alignment">
         <set>Qt::AlignCenter</set>
        </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <layout class="QVBoxLayout" name="m_vl_1">
+         <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
-           <layout class="QHBoxLayout" name="m_hl_0">
-            <item>
-             <widget class="QLabel" name="m_lb_samples">
-              <property name="text">
-               <string>Samples</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="m_cb_samples">
-              <item>
-               <property name="text">
-                <string>8000</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>16000</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>24000</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="m_lb_channels">
-              <property name="text">
-               <string>Channels</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="m_cb_channels">
-              <item>
-               <property name="text">
-                <string>1</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>2</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QPushButton" name="m_pb_applay">
+           <widget class="QLabel" name="m_lb_samples">
             <property name="text">
-             <string>Applay</string>
+             <string>Samples</string>
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QComboBox" name="m_cb_samples">
+            <item>
+             <property name="text">
+              <string>8000</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>16000</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>24000</string>
+             </property>
+            </item>
+           </widget>
+          </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QPushButton" name="m_pb_applay">
+          <property name="text">
+           <string>Applay</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -109,20 +84,6 @@
         <set>Qt::AlignCenter</set>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
-        <item>
-         <layout class="QHBoxLayout" name="m_hl_output">
-          <item>
-           <widget class="QPushButton" name="m_pb_path">
-            <property name="text">
-             <string>...</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="m_le_path"/>
-          </item>
-         </layout>
-        </item>
         <item>
          <widget class="QPushButton" name="m_pb_save">
           <property name="text">
@@ -143,21 +104,61 @@
      <property name="alignment">
       <set>Qt::AlignCenter</set>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <layout class="QVBoxLayout" name="m_vl_player">
+       <widget class="QCustomPlot" name="m_plotter" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>100</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="m_hl_player">
         <item>
-         <widget class="QCheckBox" name="m_cb_listen">
-          <property name="text">
-           <string>Listen</string>
+         <widget class="QGroupBox" name="m_gb_play_stop">
+          <property name="minimumSize">
+           <size>
+            <width>90</width>
+            <height>0</height>
+           </size>
           </property>
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_6">
+           <item>
+            <widget class="QCheckBox" name="m_cb_play_stop">
+             <property name="text">
+              <string>PLAY</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="m_cb_play_stop">
-          <property name="text">
-           <string>PLAY</string>
+         <widget class="QGroupBox" name="m_gb_volume">
+          <property name="title">
+           <string>Volume</string>
           </property>
+          <layout class="QHBoxLayout" name="m_hl_volume">
+           <item>
+            <widget class="QSlider" name="m_hs_sound">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>100</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>
@@ -187,6 +188,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QCustomPlot</class>
+   <extends>QWidget</extends>
+   <header>qcustomplot/qcustomplot.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>
@@ -237,13 +246,45 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>m_hs_sound</sender>
+   <signal>actionTriggered(int)</signal>
+   <receiver>q_settings</receiver>
+   <slot>volume(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>243</x>
+     <y>310</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>249</x>
+     <y>195</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_pb_save</sender>
+   <signal>clicked()</signal>
+   <receiver>q_settings</receiver>
+   <slot>save()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>371</x>
+     <y>90</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>249</x>
+     <y>195</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>back_to_device_list()</slot>
   <slot>applay_settings()</slot>
-  <slot>select_path()</slot>
   <slot>save()</slot>
   <slot>play_or_pause()</slot>
   <slot>stop()</slot>
+  <slot>volume(int)</slot>
  </slots>
 </ui>
