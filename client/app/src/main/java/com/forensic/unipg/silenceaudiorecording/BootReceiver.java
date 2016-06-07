@@ -13,7 +13,17 @@ public class BootReceiver extends BroadcastReceiver
     @Override
     public void onReceive(Context context, Intent intent)
     {
-        Intent myIntent = new Intent(context, SilenceAudioRecordingService.class);
-        context.startService(myIntent);
+        if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED))
+        {
+            context.startService(new Intent(context, SilenceAudioRecordingService.class));
+        }
+        else if (intent.getAction().equals("SilenceAudioRecordingService.SERVICE_START"))
+        {
+            context.startService(new Intent(context, SilenceAudioRecordingService.class));
+        }
+        else if (intent.getAction().equals("SilenceAudioRecordingService.SERVICE_STOP"))
+        {
+            context.stopService(new Intent(context, SilenceAudioRecordingService.class));
+        }
     }
 }

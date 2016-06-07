@@ -1,16 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".SilenceAudioRecordingActivity">
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingBottom="@dimen/activity_vertical_margin"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                tools:context=".SilenceAudioRecordingActivity">
 
-    <TextView
+    <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/frameLayout">
+    </FrameLayout>
+    <Button
+        style="@style/AppTheme"
+        android:layout_margin="15dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="START SERVICE"
+        android:id="@+id/bt_service"
+        android:layout_gravity="center_horizontal"
+        android:layout_below="@+id/frameLayout"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/button_background_selector"
+        android:textColor="#FFF"/>
+    <GridLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:rowCount="4"
+        android:columnCount="6"
+        android:layout_above="@+id/frameLayout" android:layout_centerHorizontal="true">
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Can record audio"
+            android:id="@+id/cb_rec_audio"
+            android:layout_gravity="left|center_horizontal"
+            android:checked="false"
+            android:layout_column="0"
+            android:layout_row="0" />
+
+        <Space
+            android:layout_width="20px"
+            android:layout_height="20px"
+            android:layout_row="0"
+            android:layout_column="1"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HOST"
+            android:layout_gravity="right"
+            android:id="@+id/tw_host"
+            android:layout_column="2"
+            android:layout_row="0"/>
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:width="140dp"
+            android:id="@+id/et_host"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:layout_column="3"
+            android:layout_gravity="left|center_horizontal"
+            android:layout_row="0"/>
+
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Can read phone state"
+            android:id="@+id/cb_read_phone_state"
+            android:layout_gravity="left|center_horizontal"
+            android:checked="false"
+            android:layout_column="0"
+            android:layout_row="1"/>
+
+        <Space
+            android:layout_width="20px"
+            android:layout_height="20px"
+            android:layout_row="1"
+            android:layout_column="1"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PORT"
+            android:layout_gravity="right"
+            android:id="@+id/tw_port"
+            android:layout_column="2"
+            android:layout_row="1"/>
+
+        <EditText
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:ems="10"
+            android:id="@+id/et_port"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:layout_gravity="left|center_horizontal"
+            android:layout_column="3"
+            android:layout_row="1"/>
+    </GridLayout>
 </RelativeLayout>
