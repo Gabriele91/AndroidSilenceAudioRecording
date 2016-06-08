@@ -26,8 +26,8 @@ public:
     };
 
     using map_listeners  = std::map< std::string , row_map_listener > ;
-    using iterator       = typename map_listeners::iterator ;
-    using const_iterator = typename map_listeners::const_iterator ;
+    using iterator       = map_listeners::iterator ;
+    using const_iterator = map_listeners::const_iterator ;
 
     q_list_server_listener(QListWidget* q_list_widge = nullptr)
     {
