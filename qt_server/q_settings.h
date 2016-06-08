@@ -9,6 +9,7 @@ namespace Ui {
 class q_settings;
 }
 
+class q_audio_player;
 class q_android_silence_audio_recording;
 class q_audio_server_listener;
 
@@ -41,6 +42,7 @@ private:
     QBasicTimer*       m_timer { nullptr };
     void               timerEvent(QTimerEvent *etime);
     //attribute
+    q_audio_player*                    m_player;
     q_audio_server_listener*           m_listener;
     q_android_silence_audio_recording* m_asar;
     Ui::q_settings*                    m_ui;

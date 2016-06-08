@@ -109,6 +109,13 @@
          <item>
           <widget class="QListWidget" name="m_lw_devices"/>
          </item>
+         <item>
+          <widget class="QPushButton" name="m_pb_options">
+           <property name="text">
+            <string>Options</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
@@ -127,5 +134,25 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>m_pb_options</sender>
+   <signal>clicked()</signal>
+   <receiver>q_android_silence_audio_recording</receiver>
+   <slot>options()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>259</x>
+     <y>488</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>259</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>options()</slot>
+ </slots>
 </ui>

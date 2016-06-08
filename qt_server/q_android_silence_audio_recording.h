@@ -4,6 +4,8 @@
 #include <q_audio_server_listener.h>
 #include <q_list_server_listener.h>
 #include <q_settings.h>
+#include <q_options.h>
+
 namespace Ui {
 class q_android_silence_audio_recording;
 }
@@ -26,6 +28,7 @@ public:
 public slots:
 
     void itemClicked(QListWidgetItem* item);
+    void options();
 
 protected:
 
@@ -36,6 +39,7 @@ protected:
 private:
 
     rak_server                             m_rak_server;
+    q_options*                             m_options;
     q_settings*                            m_settings;
     q_list_server_listener                 m_list_listener;
     QPoint                                 m_drag_position;

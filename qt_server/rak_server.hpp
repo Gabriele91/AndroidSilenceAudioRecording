@@ -53,20 +53,36 @@ public:
     
     ~rak_server()
     {
-        //stop
-        stop_loop();
         //shutdown
-        m_peer->Shutdown(0);
+        shutdown();
         //destoy
         RakNet::RakPeerInterface::DestroyInstance(m_peer);
     }
     
     bool init(int port,int max_clients)
     {
+        //seve port
+        m_init_port = port;
+        //init raknet
         RakNet::SocketDescriptor socket_desc(port, 0);
         RakNet::StartupResult result = m_peer->Startup(max_clients, &socket_desc, 1);
         m_peer->SetMaximumIncomingConnections(max_clients);
         return result == RakNet::RAKNET_STARTED;
+    }
+
+    int get_init_port() const
+    {
+        return m_init_port;
+    }
+
+    void shutdown()
+    {
+        //shutdown
+        m_peer->Shutdown(0);
+        //stop
+        stop_loop();
+        //shutdown
+        m_peer->Shutdown(0);
     }
 
     void stop_loop()
@@ -131,12 +147,6 @@ public:
                                        {
                                            switch (packet->data[0])
                                            {
-#if 0
-                                               case ID_REMOTE_DISCONNECTION_NOTIFICATION: break;
-                                               case ID_REMOTE_CONNECTION_LOST: break;
-                                               case ID_REMOTE_NEW_INCOMING_CONNECTION: break;
-                                               case ID_CONNECTION_REQUEST_ACCEPTED: break;
-#endif
                                                    
                                                case ID_NEW_INCOMING_CONNECTION:
                                                    listener.incoming_connection(*this, packet->systemAddress);
@@ -199,6 +209,7 @@ public:
     
 private:
     
+    int                       m_init_port{ 0 };
     RakNet::RakPeerInterface *m_peer;
     bool                      m_loop;
     std::thread               m_thread;

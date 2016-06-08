@@ -2,12 +2,14 @@
 #include "ui_q_settings.h"
 #include <q_android_silence_audio_recording.h>
 #include <q_audio_server_listener.h>
+#include <q_audio_player.h>
 #include <QString>
 #include <string>
 q_settings::q_settings(q_android_silence_audio_recording *parent)
 :QWidget(parent)
 ,m_asar(parent)
 ,m_ui(new Ui::q_settings)
+,m_player(new q_audio_player)
 {
     //setup ui
     m_ui->setupUi(this);
@@ -32,7 +34,6 @@ q_settings::q_settings(q_android_silence_audio_recording *parent)
     m_last_path = QDir::homePath();
     //applay update
     m_timer = new QBasicTimer();
-
     ////////////////////////////////////////////////////////////////////////
     //size of plotter
     m_ui->m_plotter->xAxis->setRange(0,9);
@@ -50,6 +51,7 @@ q_settings::q_settings(q_android_silence_audio_recording *parent)
 q_settings::~q_settings()
 {
     m_timer->stop();
+    delete m_player;
     delete m_timer;
     delete m_ui;
 }
@@ -61,7 +63,7 @@ void q_settings::set_audio_server_listener(q_audio_server_listener* listener)
     //reset
     cleanup_info();
     //volume to max
-    m_listener->output_set_volume(1.0);
+    m_player->set_volume(1.0);
     //build string callback
     auto callback =
     [this](bool connected)
@@ -85,7 +87,7 @@ void q_settings::timerEvent(QTimerEvent *etime)
 {
     if(m_listener && m_listener->state() == S_REC)
     {
-        append_sample(m_listener->output_value());
+        append_sample(m_player->output_value());
         m_ui->m_plotter->replot();
     }
 }
@@ -164,11 +166,20 @@ void q_settings::applay_settings()
    {
        const unsigned int channels = 1;
        const unsigned int samples  = m_ui->m_cb_samples->currentText().toInt();
-       m_listener->init({
-                            channels,
-                            samples*channels,
-                            16
-                        });
+       //create info
+       input_meta_info meta_info =
+       {
+           channels,
+           samples*channels,
+           16
+       };
+       //init listener
+       m_listener->init(meta_info);
+       //init audio output
+       m_player->init(meta_info);
+       m_player->stop();
+       //attach
+       m_listener->set_output_buffer(m_player->get_buffer_output());
        //init timer
        const int ms_update = 5;
        m_timer->stop();
@@ -269,10 +280,7 @@ void q_settings::save()
 
 void q_settings::volume(int value)
 {
-    if(m_listener)
-    {
-        m_listener->output_set_volume((double(m_ui->m_hs_sound->value()))/100.0);
-    }
+    m_player->set_volume((double(m_ui->m_hs_sound->value()))/100.0);
 }
 
 void q_settings::play_or_pause()
@@ -282,7 +290,7 @@ void q_settings::play_or_pause()
          m_listener->state()==S_PAUSE )
     {
         m_listener->send_start(m_asar->get_rak_server());
-        m_listener->output_play();
+        m_player->play();
         m_ui->m_cb_play_stop->setText("PAUSE");
     }
     else
@@ -290,7 +298,7 @@ void q_settings::play_or_pause()
         if ( m_listener->state()==S_REC )
         {
             m_listener->send_pause(m_asar->get_rak_server());
-            m_listener->output_stop();
+            m_player->stop();
         }
         //in any case
         m_ui->m_cb_play_stop->setText("PLAY");
@@ -307,7 +315,7 @@ void q_settings::stop()
        m_listener->state()==S_PAUSE) )
     {
         m_listener->send_stop(m_asar->get_rak_server());
-        m_listener->output_stop();
+        m_player->stop();
         m_ui->m_cb_play_stop->setText("PLAY");
         m_ui->m_cb_play_stop->setChecked(false);
     }

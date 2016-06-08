@@ -2,12 +2,11 @@
 #include "ui_q_android_silence_audio_recording.h"
 #include <QWindow>
 #include <QMouseEvent>
-#define MAX_CLIENTS 255
-#define SERVER_PORT 8000
 
 q_android_silence_audio_recording::q_android_silence_audio_recording(QWidget *parent)
 :QMainWindow(parent, Qt::FramelessWindowHint | Qt::WindowSystemMenuHint)
 ,m_ui(new Ui::q_android_silence_audio_recording)
+,m_options(new q_options(this))
 ,m_settings(new q_settings(this))
 {
     //init ui
@@ -70,7 +69,8 @@ q_android_silence_audio_recording::q_android_silence_audio_recording(QWidget *pa
     //set view list
     m_list_listener.set_list(m_ui->m_lw_devices);
     //init rak server
-    m_rak_server.init(SERVER_PORT,MAX_CLIENTS);
+    m_rak_server.init(m_options->get_port(),
+                      m_options->get_max_clients());
     //set callback
     m_rak_server.loop(m_list_listener);
 }
@@ -79,6 +79,8 @@ q_android_silence_audio_recording::~q_android_silence_audio_recording()
 {
     //stop server
     m_rak_server.stop_loop();
+    //dealloc dialogs
+    delete m_options;
     //delete ui
     delete m_ui;
 }
@@ -98,6 +100,7 @@ void q_android_silence_audio_recording::show_settings(q_audio_server_listener* l
     m_settings->set_audio_server_listener(listener);
     //change ui
     m_ui->m_lw_devices->hide();
+    m_ui->m_pb_options->hide();
     m_settings->show();
     //renable signals
     m_settings->blockSignals(false);
@@ -112,6 +115,7 @@ void q_android_silence_audio_recording::show_list_device()
     //change ui
     m_settings->hide();
     m_ui->m_lw_devices->show();
+    m_ui->m_pb_options->show();
     //renable signals
     m_settings->blockSignals(false);
     m_ui->m_lw_devices->blockSignals(false);
@@ -125,6 +129,25 @@ void q_android_silence_audio_recording::itemClicked(QListWidgetItem* item)
     auto* row = (q_list_server_listener::row_map_listener*)variant.value<void*>();
     //show
     show_settings(&row->m_listener);
+}
+
+void q_android_silence_audio_recording::options()
+{
+    //exec
+    m_options->exec();
+    //test port
+    if(m_options->get_port() != m_rak_server.get_init_port())
+    {
+        //destoy all
+        m_rak_server.shutdown();
+        //clear list
+        m_list_listener.clear();
+        //init rak server
+        m_rak_server.init(m_options->get_port(),
+                          m_options->get_max_clients());
+        //set callback
+        m_rak_server.loop(m_list_listener);
+    }
 }
 
 void q_android_silence_audio_recording::showEvent(QShowEvent * event)

@@ -188,6 +188,15 @@ public:
         return m_listeners[addrs];
     }
 
+    void clear()
+    {
+        for(auto& element:m_listeners)
+        {
+            delete element.second.m_item ;
+        }
+        m_listeners.clear();
+    }
+
 
 private:
 

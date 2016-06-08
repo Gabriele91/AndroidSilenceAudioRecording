@@ -14,7 +14,8 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         q_android_silence_audio_recording.cpp \
-    q_settings.cpp
+    q_settings.cpp \
+    q_options.cpp
 
 HEADERS  += q_android_silence_audio_recording.h \
     rak_server.hpp \
@@ -22,10 +23,13 @@ HEADERS  += q_android_silence_audio_recording.h \
     q_list_server_listener.h \
     q_settings.h \
     q_audio_server_listener.h \
-    q_frame_double_click.h
+    q_frame_double_click.h \
+    q_audio_player.h \
+    q_options.h
 
 FORMS    += q_android_silence_audio_recording.ui \
-    q_settings.ui
+    q_settings.ui \
+    q_options.ui
 
 #qcustomplot
 SOURCES += qcustomplot/qcustomplot.cpp
