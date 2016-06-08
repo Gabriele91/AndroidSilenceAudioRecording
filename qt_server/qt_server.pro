@@ -4,7 +4,12 @@
 #
 #-------------------------------------------------
 
+
+#add qt ev
 QT += core gui multimedia printsupport
+
+#flags
+win32:DEFINES += _WINSOCKAPI_
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -35,14 +40,26 @@ HEADERS += qcustomplot/qcustomplot.h
 INCLUDEPATH += $$PWD/../server/dependencies/include
 #dependencies libs path
 CONFIG(debug, debug|release) {
-    win32:QMAKE_LIBDIR  += $$PWD/../server/dependencies/lib/win32/debug
+    win32: {
+        contains(QMAKE_HOST.arch, x86_64):{
+            QMAKE_LIBDIR  += $$PWD/../server/dependencies/lib/x64/debug
+        } else {
+            QMAKE_LIBDIR  += $$PWD/../server/dependencies/lib/win32/debug
+        }
+    }
     mac:  QMAKE_LIBDIR  += $$PWD/../server/dependencies/lib/osx/debug
 } else {
-    win32:QMAKE_LIBDIR  += $$PWD/../server/dependencies/lib/win32/release
+    win32: {
+        contains(QMAKE_HOST.arch, x86_64):{
+            QMAKE_LIBDIR  += $$PWD/../server/dependencies/lib/x64/release
+        } else {
+            QMAKE_LIBDIR  += $$PWD/../server/dependencies/lib/win32/release
+        }
+    }
     mac:  QMAKE_LIBDIR  += $$PWD/../server/dependencies/lib/osx/release
 }
 #dependencies libs
-win32:LIBS += silk_common.lib celt.lib opus.lib RakNetLibStatic.lib
+win32:LIBS += ws2_32.lib silk_common.lib celt.lib opus.lib RakNetLibStatic.lib
 mac:LIBS += -lopus -lRakNetLibStatic
 
 RESOURCES += \
