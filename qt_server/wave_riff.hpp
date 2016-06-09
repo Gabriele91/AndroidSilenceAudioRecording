@@ -3,6 +3,7 @@
 //
 #pragma  once
 #include <cstdio>
+#include <QDebug>
 #define BIG_ENDIAN 4321
 #define LITTLE_ENDIAN 1234
 #define BYTE_ORDER BIG_ENDIAN
@@ -82,16 +83,31 @@ public:
                  unsigned int m_subchunk2_size;
              });
 
+    //field struct
+    struct info_field
+    {
+        char m_type[4];
+        std::string m_value;
+    };
+    //fields
+    using info_fields =  std::vector< info_field >;
+
     enum endianness
     {
         LE_MODE,
         BE_MODE
     };
 
-    void init(FILE* file,const input_meta_info& info, endianness mode)
+    void set_file(FILE* file)
     {
+        m_file = file;
+    }
+
+    void init(const input_meta_info& info, endianness mode,info_fields meta_info={})
+    {
+        //save meta info
+        m_meta_info = meta_info;
         //save ptr
-        m_file             = file;
         m_bits_per_sample  = info.m_bits_per_sample;
         //init
         riff_or_list_header riff =
@@ -127,6 +143,8 @@ public:
                 {'d','a','t', 'a'},
                 0
         };
+        //save ptr to start rif block
+        m_start_riff = std::ftell(m_file);
         //write header riff
         std::fwrite(&riff, sizeof(riff_or_list_header), 1, m_file);
         //write header fmt
@@ -161,11 +179,11 @@ public:
     void complete()
     {
         //at end get file size
-        size_t size_file = std::ftell(m_file);
+        size_t riff_chunk_size_all = std::ftell(m_file) - m_start_riff;
         ////////////////////////////////////////////////////////////////////////////////////
         std::fseek(m_file,offsetof(riff_or_list_header,m_chunk_size),SEEK_SET);
         //write size of the rest file
-        unsigned int riff_chunk_size = size_file - 8;
+        unsigned int riff_chunk_size = riff_chunk_size_all - 8;
         std::fwrite(&riff_chunk_size,sizeof(riff_chunk_size), 1,m_file);
         ////////////////////////////////////////////////////////////////////////////////////
         //set pos
@@ -174,7 +192,7 @@ public:
                                       + offsetof(date_header_write,m_subchunk2_size);
         std::fseek(m_file,size_data_pos,SEEK_SET);
         //compute size
-        unsigned int size_data =   size_file
+        unsigned int size_data =   riff_chunk_size_all
                                  - sizeof(riff_or_list_header)
                                  - sizeof(fmt_header)
                                  - sizeof(date_header_write);
@@ -183,16 +201,9 @@ public:
         ////////////////////////////////////////////////////////////////////////////////////
         //set to end
         std::fseek(m_file,0,SEEK_END);
+        ////////////////////////////////////////////////////////////////////////////////////
+        if(m_meta_info.size()) append_info(m_meta_info);
     }
-
-    //field struct
-    struct info_field
-    {
-        char m_type[4];
-        std::string m_value;
-    };
-    //fields
-    using info_fields =  std::vector< info_field >;
     //append
     void append_info(const info_fields& all_info)
     {
@@ -264,6 +275,8 @@ public:
 private:
 
     //current file
-    size_t m_bits_per_sample  { 0 };
-    FILE*  m_file             { nullptr };
+    info_fields m_meta_info;
+    size_t      m_start_riff       { 0 };
+    size_t      m_bits_per_sample  { 0 };
+    FILE*       m_file             { nullptr };
 };

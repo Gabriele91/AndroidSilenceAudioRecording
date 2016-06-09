@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>392</height>
+    <height>399</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,7 +25,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="m_hl_1">
+    <layout class="QHBoxLayout" name="m_hl_to_apply">
      <item>
       <widget class="QGroupBox" name="m_gb_settings">
        <property name="title">
@@ -65,13 +65,6 @@
           </item>
          </layout>
         </item>
-        <item>
-         <widget class="QPushButton" name="m_pb_applay">
-          <property name="text">
-           <string>Applay</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </widget>
      </item>
@@ -85,16 +78,34 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <widget class="QPushButton" name="m_pb_save">
-          <property name="text">
-           <string>save</string>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="m_lb_name">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="m_pb_rename">
+            <property name="text">
+             <string>rename</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QPushButton" name="m_pb_apply">
+     <property name="text">
+      <string>Apply</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QGroupBox" name="m_gb_player">
@@ -215,22 +226,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>m_pb_applay</sender>
-   <signal>clicked()</signal>
-   <receiver>q_settings</receiver>
-   <slot>applay_settings()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>161</x>
-     <y>107</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>261</x>
-     <y>161</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>m_cb_play_stop</sender>
    <signal>clicked()</signal>
    <receiver>q_settings</receiver>
@@ -263,10 +258,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>m_pb_save</sender>
+   <sender>m_pb_rename</sender>
    <signal>clicked()</signal>
    <receiver>q_settings</receiver>
-   <slot>save()</slot>
+   <slot>rename()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>371</x>
@@ -278,11 +273,27 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>m_pb_apply</sender>
+   <signal>clicked()</signal>
+   <receiver>q_settings</receiver>
+   <slot>apply_settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>249</x>
+     <y>119</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>249</x>
+     <y>199</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>back_to_device_list()</slot>
-  <slot>applay_settings()</slot>
-  <slot>save()</slot>
+  <slot>apply_settings()</slot>
+  <slot>rename()</slot>
   <slot>play_or_pause()</slot>
   <slot>stop()</slot>
   <slot>volume(int)</slot>

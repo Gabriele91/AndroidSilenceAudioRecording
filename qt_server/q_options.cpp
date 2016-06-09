@@ -73,10 +73,7 @@ void q_options::set_path()
 
         if(QFileInfo(default_path).isWritable())
         {
-#if 0
-            m_settings.setValue("PATH",default_path);
-#endif
-            m_ui->m_le_path->setText(get_path());
+            m_ui->m_le_path->setText(default_path);
         }
         else
         {
@@ -91,9 +88,7 @@ void q_options::set_path()
 
 void q_options::set_port(int port)
 {
-#if 0
-    m_settings.setValue("PORT",port);
-#endif
+    //none
 }
 
 QString q_options::get_path() const

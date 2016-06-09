@@ -98,7 +98,7 @@ void q_android_silence_audio_recording::show_settings(q_audio_server_listener* l
     m_settings->blockSignals(true);
     m_ui->m_lw_devices->blockSignals(true);
     //set listener
-    m_settings->set_audio_server_listener(listener);
+    m_settings->set_audio_server_listener(listener,m_options->get_path());
     //change ui
     m_ui->m_lw_devices->hide();
     m_ui->m_pb_options->hide();

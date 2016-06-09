@@ -231,42 +231,45 @@ public:
         m_connection_cb = callback;
     }
 
-    bool save_file(const std::string& path,
-                   const wav_riff::info_fields& info,
-                   bool clear=false)
+    bool open_output_file(const std::string& path,
+                          const wav_riff::info_fields& riff_meta_info)
     {
-        //attributes
-        FILE* m_file = nullptr;
-        wav_riff m_wav;
         //open file
         m_file = fopen(path.c_str(),"w");
-        //open?
+        //open
         if(m_file)
         {
+            //save path
+            m_path = QString(path.c_str());
+            //set file
+            m_wav.set_file(m_file);
             //init file
-            m_wav.init(m_file, m_info, wav_riff::LE_MODE);
-            //append
-            m_wav.append((void*)m_file_buffer.data(), m_file_buffer.size(), wav_riff::BE_MODE);
-            //compute size
-            m_wav.complete();
-            //add meta info
-            if(info.size()) m_wav.append_info(info);
-            //close
-            fclose(m_file);
-            //clear
-            if(clear)
-            {
-                m_file_buffer.clear();
-            }
-            //success
+            m_wav.init(m_info, wav_riff::LE_MODE, riff_meta_info);
+            //ok
             return true;
         }
+
         return false;
     }
 
-    void clear_buffer_file()
+    const QString& get_output_path() const
     {
-        m_file_buffer.clear();
+        return m_path;
+    }
+
+    bool close_output_file()
+    {
+        if(m_file)
+        {
+            //compute size
+            m_wav.complete();
+            //close
+            fclose(m_file);
+            //ok
+            return true;
+        }
+
+        return false;
     }
 
     void set_output_buffer(QByteArray* buffer)
@@ -313,19 +316,13 @@ protected:
     std::vector< unsigned char >  m_buf_dec;
 
     //file output
-    std::vector< unsigned char >   m_file_buffer;
+    QString  m_path;
+    FILE*    m_file;
+    wav_riff m_wav;
+
     //append
     void append_to_file(unsigned char* buffer, size_t size)
     {
-        if(!size) return;
-        //old size
-        size_t current_size = m_file_buffer.size();
-        //new size
-        size_t new_size = current_size + size;
-        //alloc
-        m_file_buffer.resize(new_size);
-        //copy data
-        std::memcpy(&m_file_buffer[current_size],buffer,size);
-        //end
+         if(m_file) m_wav.append((void*)buffer,size,wav_riff::BE_MODE);
     }
 };

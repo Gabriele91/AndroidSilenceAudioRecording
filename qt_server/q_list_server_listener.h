@@ -25,6 +25,7 @@ public:
         QListWidgetItem*         m_item;
     };
 
+    using map_android_id = std::map< std::string , std::string > ;
     using map_listeners  = std::map< std::string , row_map_listener > ;
     using iterator       = map_listeners::iterator ;
     using const_iterator = map_listeners::const_iterator ;
@@ -53,22 +54,33 @@ public:
 
     virtual void incoming_connection(rak_server& server,const RakNet::AddressOrGUID addrs)
     {
-        //get row;
-        auto& row = m_listeners[addrs.ToString()];
-        //add into map
-        row.m_listener.incoming_connection(server,addrs);
+        //none
+    }
+
+    virtual void get_imei_and_android_id(rak_server& server,
+                                         const RakNet::AddressOrGUID addrs,
+                                         const char* c_imei,
+                                         const char* c_android_id)
+    {
+        std::string android_id(c_android_id);
+        //save android id
+        add_android_id_into_map(addrs,android_id);
+        //get row
+        row_map_listener& row = m_listeners[android_id];
         //listener
         if(!row.m_item) row.m_item = create_new_row(row);
+        //call listner
+        row.m_listener.incoming_connection(server, addrs);
+        //call listner
+        row.m_listener.get_imei_and_android_id(server, addrs, c_imei, c_android_id);
         //set info
-        row.m_item->setText(build_item_string(QString::fromUtf8(row.m_listener.get_android_id().c_str()),
-                                              QString::fromUtf8(row.m_listener.get_imei().c_str()),
-                                              true));
+        row.m_item->setText(build_item_string(c_android_id, c_imei,true));
     }
 
     virtual void end_connection(rak_server& server,const RakNet::AddressOrGUID addrs)
     {
         //listener
-        auto it_listeners = m_listeners.find(addrs.ToString());
+        auto it_listeners = get_row_from_addrs(addrs);
         //get row;
         if(it_listeners != m_listeners.end())
         {
@@ -83,30 +95,13 @@ public:
         }
     }
 
-    virtual void get_imei_and_android_id(rak_server& server,
-                                         const RakNet::AddressOrGUID addrs,
-                                         const char* imei,
-                                         const char* android_id)
-    {
-
-        //listener
-        auto it_listeners = m_listeners.find(addrs.ToString());
-        //get row;
-        if(it_listeners != m_listeners.end())
-        {
-            //get row
-            auto& row = it_listeners->second;
-            //call listner
-            row.m_listener.get_imei_and_android_id(server, addrs, imei,android_id);
-            //set info
-            row.m_item->setText(build_item_string(android_id,imei,true));
-        }
-    }
-
-    virtual void get_raw_voice(rak_server& server ,const RakNet::AddressOrGUID addrs,RakNet::BitStream& stream)
+    virtual void get_raw_voice(rak_server& server ,
+                               const RakNet::AddressOrGUID addrs,
+                               RakNet::BitStream& stream)
     {
         //listener
-        auto it_listeners = m_listeners.find(addrs.ToString());
+        auto it_listeners = get_row_from_addrs(addrs);
+        qDebug() << "voice from:"<< addrs.ToString();
         //get row;
         if(it_listeners != m_listeners.end())
         {
@@ -120,7 +115,7 @@ public:
     virtual void fail_connection(rak_server& server, const RakNet::AddressOrGUID addrs)
     {
         //listener
-        auto it_listeners = m_listeners.find(addrs.ToString());
+        auto it_listeners = get_row_from_addrs(addrs);
         //get row;
         if(it_listeners != m_listeners.end())
         {
@@ -197,6 +192,58 @@ public:
         m_listeners.clear();
     }
 
+    std::string get_android_id(const std::string& addrs)
+    {
+        if(exists_android_id(addrs)) return m_android_ids[addrs];
+        else std::string();
+    }
+
+    void add_android_id_into_map(const std::string& addrs,const std::string& android_id)
+    {
+        m_android_ids.insert({addrs,android_id});
+    }
+
+    void add_android_id_into_map(const RakNet::AddressOrGUID& addrs,const std::string& android_id)
+    {
+        m_android_ids.insert({addrs.ToString(),android_id});
+    }
+
+    iterator get_row_from_addrs(const std::string& addrs)
+    {
+        //search id
+        auto it_id = m_android_ids.find(addrs);
+        //test id
+        if(it_id != m_android_ids.end())
+        {
+            return m_listeners.find(it_id->second);
+        }
+        //else return false
+        return m_listeners.end();
+    }
+
+    iterator get_row_from_addrs(const RakNet::AddressOrGUID& addrs)
+    {
+        //search id
+        auto it_id = m_android_ids.find(addrs.ToString());
+        //test id
+        if(it_id != m_android_ids.end())
+        {
+            return m_listeners.find(it_id->second);
+        }
+        //else return false
+        return m_listeners.end();
+    }
+
+    bool exists_android_id(const std::string& addrs) const
+    {
+       return m_android_ids.end() != m_android_ids.find(addrs);
+    }
+
+    bool exists_android_id(const RakNet::AddressOrGUID& addrs) const
+    {
+       return m_android_ids.end() != m_android_ids.find(addrs.ToString());
+    }
+
 
 private:
 
@@ -208,7 +255,8 @@ private:
                 (connected? "connected":"disconnected");
     }
 
-    map_listeners m_listeners;
-    QListWidget*  m_list_widget;
+    map_android_id m_android_ids;
+    map_listeners  m_listeners;
+    QListWidget*   m_list_widget;
 
 };

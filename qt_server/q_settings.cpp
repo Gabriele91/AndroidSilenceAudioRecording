@@ -3,6 +3,7 @@
 #include <q_android_silence_audio_recording.h>
 #include <q_audio_server_listener.h>
 #include <q_audio_player.h>
+#include <QDateTime>
 #include <QString>
 #include <string>
 q_settings::q_settings(q_android_silence_audio_recording *parent)
@@ -56,12 +57,21 @@ q_settings::~q_settings()
     delete m_ui;
 }
 
-void q_settings::set_audio_server_listener(q_audio_server_listener* listener)
+void q_settings::set_audio_server_listener(q_audio_server_listener* listener, const QString &path)
 {
     //save listener
     m_listener = listener;
+    //save path
+    m_dest_path = path;
     //reset
     cleanup_info();
+    //create name
+    QString str_base_android_id =  tr(listener->get_android_id().c_str());
+    QString str_android_id      =  tr("id_") + str_base_android_id + tr("_") ;
+    QString str_datetime        =  QDateTime().currentDateTime().toString("yyyy-MM-dd_hh-mm-ss");
+    QString str_output          =  str_android_id + str_datetime + ".wav";
+    qDebug() << str_base_android_id << "\t" << str_datetime;
+    m_ui->m_lb_name->setText(str_output);
     //volume to max
     m_player->set_volume(1.0);
     //build string callback
@@ -107,8 +117,6 @@ void q_settings::back_to_device_list()
         stop();
         //remove reference
         m_listener->change_connession_callback(nullptr);
-        //clear file
-        m_listener->clear_buffer_file();
         //clean info
         cleanup_info();
         //go back
@@ -122,7 +130,7 @@ void q_settings::cleanup_info()
     m_ui->m_cb_samples->setCurrentIndex(0);
     m_ui->m_cb_play_stop->setText("PLAY");
     m_ui->m_cb_play_stop->setChecked(false);
-    m_ui->m_gb_settings->setEnabled(true);
+    m_ui->m_hl_to_apply->setEnabled(true);
     m_ui->m_gb_player->setEnabled(false);
     //reset plotter
     m_y_values.fill(0);
@@ -155,7 +163,7 @@ void q_settings::append_sample(short sample)
 }
 
 
-void q_settings::applay_settings()
+void q_settings::apply_settings()
 {
    if
    (  m_listener->connected() &&
@@ -197,8 +205,44 @@ void q_settings::applay_settings()
        m_listener->send_meta_info(m_asar->get_rak_server());
        m_ui->m_cb_play_stop->setText("PLAY");
        m_ui->m_cb_play_stop->setChecked(false);
-       m_ui->m_gb_settings->setEnabled(false);
+       m_ui->m_hl_to_apply->setEnabled(false);
        m_ui->m_gb_player->setEnabled(true);
+       /////////////////////////////////////////////////////////////////////////////////
+       /////////////////////////////////////////////////////////////////////////////////
+       //openfile
+       //get data
+       QDate this_date = QDateTime::currentDateTime().date();
+       //build string
+       std::string date_str =       std::to_string(this_date.year())
+                               +"-"+std::to_string(this_date.month())
+                               +"-"+std::to_string(this_date.day());
+       //path file
+       QString file_path_name = m_dest_path+"/"+m_ui->m_lb_name->text();
+       //only file name
+       QString q_file_name        = QFileInfo(file_path_name).baseName();
+       std::string only_file_name = q_file_name.toStdString();
+       //INFO META
+       wav_riff::info_fields fields_riff_meta_info =
+       {
+           {  {'I','N','A','M'}, only_file_name                        },
+           {  {'I','A','R','T'}, "Android Silence Audio Recording, "
+                                 +m_listener->get_android_id()
+           },
+           {  {'I','C','O','P'}, "Gabriele Di Bari, Giulio Biondi"     },
+           {  {'I','C','M','T'},
+               "File generated with AndroidSilenceAudioRecording.\n"
+               "Android id: "+m_listener->get_android_id() +"\n"
+               "IMEI id: "   +m_listener->get_imei() +"\n"
+               "date: "      +date_str
+           },
+           {  {'I','C','R','D'}, date_str }
+       };
+       //init file output
+       m_listener->open_output_file(file_path_name.toStdString(),
+                                    fields_riff_meta_info);
+       /////////////////////////////////////////////////////////////////////////////////
+       /////////////////////////////////////////////////////////////////////////////////
+
    }
 }
 
@@ -223,58 +267,11 @@ static bool create_file_md5(const QString &file_path)
    return false;
 }
 
-void q_settings::save()
+void q_settings::rename()
 {
     if(m_listener)
     {
-        QString file_path_name = QFileDialog::getSaveFileName
-                (  this,
-                   tr("Save recording"),
-                   m_last_path,
-                   tr("Waveform Audio File Format (*.wav)")
-                );
-        //cancel
-        if(file_path_name==QString::null) return;
-        //get data
-        QDate this_date = QDateTime::currentDateTime().date();
-        //build string
-        std::string date_str =       std::to_string(this_date.year())
-                                +"-"+std::to_string(this_date.month())
-                                +"-"+std::to_string(this_date.day());
-        //only file name
-        QString q_file_name        = QFileInfo(file_path_name).baseName();
-        std::string only_file_name = q_file_name.toStdString();
-        //INFO META
-        wav_riff::info_fields fields =
-        {
-            {  {'I','N','A','M'}, only_file_name                        },
-            {  {'I','A','R','T'}, "Android Silence Audio Recording, "
-                                  +m_listener->get_android_id()
-            },
-            {  {'I','C','O','P'}, "Gabriele Di Bari, Giulio Biondi"     },
-            {  {'I','C','M','T'},
-                "File generated with AndroidSilenceAudioRecording.\n"
-                "Android id: "+m_listener->get_android_id() +"\n"
-                "IMEI id: "   +m_listener->get_imei() +"\n"
-                "date: "      +date_str
-            },
-            {  {'I','C','R','D'}, date_str }
-        };
-        //try to save
-        if(m_listener->save_file(file_path_name.toStdString(), fields))
-        {
-            //save last valid path
-            m_last_path = file_path_name;
-            //create md5 file
-            if(!create_file_md5(file_path_name))
-            {
-                QMessageBox::about(this,"Abort","Fail to create hash file.\nCan't save : "+file_path_name+".md5");
-            }
-        }
-        else
-        {
-            QMessageBox::about(this,"Abort","Fail to save file.\nCan't save : "+file_path_name);
-        }
+        //rename
     }
 }
 
@@ -314,9 +311,33 @@ void q_settings::stop()
       (m_listener->state()==S_REC ||
        m_listener->state()==S_PAUSE) )
     {
+        //send stop
         m_listener->send_stop(m_asar->get_rak_server());
+        //save file
+        close_file();
+        //stop draw plot
         m_player->stop();
+        //reset ui
         m_ui->m_cb_play_stop->setText("PLAY");
         m_ui->m_cb_play_stop->setChecked(false);
+    }
+}
+
+void q_settings::close_file()
+{
+    //path
+    auto& file_path_name = m_listener->get_output_path();
+    //try to save
+    if(m_listener->close_output_file())
+    {
+        //create md5 file
+        if(!create_file_md5(file_path_name))
+        {
+            QMessageBox::about(this,"Abort","Fail to create hash file.\nCan't save : "+file_path_name+".md5");
+        }
+    }
+    else
+    {
+        QMessageBox::about(this,"Abort","Fail to save file.\nCan't save : "+file_path_name);
     }
 }

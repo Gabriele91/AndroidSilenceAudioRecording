@@ -21,13 +21,13 @@ public:
 
     explicit q_settings(q_android_silence_audio_recording *parent = 0);
     ~q_settings();
-    void set_audio_server_listener(q_audio_server_listener* listener);
+    void set_audio_server_listener(q_audio_server_listener* listener,const QString& path);
 
 public slots:
 
     void back_to_device_list();
-    void applay_settings();
-    void save();
+    void apply_settings();
+    void rename();
     void play_or_pause();
     void stop();
     void volume(int value);
@@ -47,6 +47,7 @@ private:
     q_android_silence_audio_recording* m_asar;
     Ui::q_settings*                    m_ui;
     QString                            m_last_path;
+    QString                            m_dest_path;
     //utility
     static QString build_item_string(const QString& android_id,const QString& imei, bool connected = true)
     {
@@ -55,6 +56,8 @@ private:
                 " | status: "+
                 (connected? "connected":"disconnected");
     }
+    //close file
+    void close_file();
     //clean ui
     void cleanup_info();
 
