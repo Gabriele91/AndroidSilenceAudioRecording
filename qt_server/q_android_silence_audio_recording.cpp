@@ -2,6 +2,7 @@
 #include "ui_q_android_silence_audio_recording.h"
 #include <QWindow>
 #include <QMouseEvent>
+#include <QMessageBox>
 
 q_android_silence_audio_recording::q_android_silence_audio_recording(QWidget *parent)
 :QMainWindow(parent, Qt::FramelessWindowHint | Qt::WindowSystemMenuHint)
@@ -134,9 +135,10 @@ void q_android_silence_audio_recording::itemClicked(QListWidgetItem* item)
 void q_android_silence_audio_recording::options()
 {
     //exec
-    m_options->exec();
+    int ret_value = m_options->exec();
     //test port
-    if(m_options->get_port() != m_rak_server.get_init_port())
+    if(ret_value = QMessageBox::Ok &&
+       m_options->get_port() != m_rak_server.get_init_port() )
     {
         //destoy all
         m_rak_server.shutdown();

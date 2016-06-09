@@ -24,8 +24,41 @@ q_options::q_options(QWidget *parent)
     m_ui->m_le_path->setText(get_path());
     //set last port
     m_ui->m_sb_port->setValue(get_port());
+    //default rejected
+    m_close_state = QMessageBox::Cancel;
 }
 
+int q_options::exec()
+{
+    //default rejected
+    m_close_state = QMessageBox::Cancel;
+    //set last path
+    m_ui->m_le_path->setText(get_path());
+    //set last port
+    m_ui->m_sb_port->setValue(get_port());
+    //exec
+    QDialog::exec();
+    //return
+    return m_close_state;
+}
+
+
+void q_options::accepted()
+{
+    m_close_state = QMessageBox::Ok;
+    //save
+    {
+        m_settings.setValue("PATH",m_ui->m_le_path->text());
+        m_settings.setValue("PORT",m_ui->m_sb_port->value());
+    }
+    close();
+}
+
+void q_options::rejected()
+{
+    m_close_state = QMessageBox::Cancel;
+    close();
+}
 
 void q_options::set_path()
 {
@@ -40,7 +73,9 @@ void q_options::set_path()
 
         if(QFileInfo(default_path).isWritable())
         {
+#if 0
             m_settings.setValue("PATH",default_path);
+#endif
             m_ui->m_le_path->setText(get_path());
         }
         else
@@ -56,7 +91,9 @@ void q_options::set_path()
 
 void q_options::set_port(int port)
 {
+#if 0
     m_settings.setValue("PORT",port);
+#endif
 }
 
 QString q_options::get_path() const

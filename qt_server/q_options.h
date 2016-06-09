@@ -24,13 +24,19 @@ public:
 
     unsigned short get_max_clients() const;
 
+    int exec();
+
 public slots:
 
     void set_path();
     void set_port(int port);
+    void accepted();
+    void rejected();
 
 private:
 
+    //close state
+    int m_close_state;
     //setting class
     QSettings m_settings;
     //save last path opened
