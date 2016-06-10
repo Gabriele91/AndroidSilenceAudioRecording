@@ -23,5 +23,17 @@
     <ClInclude Include="..\include\wave_riff.hpp">
       <Filter>Resource Files\Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\rak_server.hpp">
+      <Filter>Resource Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server_listener.hpp">
+      <Filter>Resource Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server_listener_manager.hpp">
+      <Filter>Resource Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server_websocket.hpp">
+      <Filter>Resource Files\Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -68,8 +68,12 @@ int main(void)
                 //parse
                 if(command == "start")
                 {
+					SHELL_CLEAR
+					std::cout << "file name?\n";
+					std::string filename;
+					std::cin >> filename;
                     //alloc file
-                    listener.create_file("test.wav");
+                    listener.create_file(filename+".wav");
                     //start
                     listener.send_start(server);
                 }

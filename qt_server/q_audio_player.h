@@ -93,7 +93,9 @@ public:
                 m_audio_output_device.close();
                 m_audio_output_device.setBuffer(&m_buffer);
                 m_audio_output_device.open(QIODevice::ReadOnly);
-                qDebug()<< "added some data\n";
+                //start
+                m_q_audio_out->reset();
+                m_q_audio_out->start(&m_audio_output_device);
             }
         });
     }
@@ -107,11 +109,11 @@ public:
             m_audio_output_device.reset();
             m_audio_output_device.setBuffer(&m_buffer);
             m_audio_output_device.open(QIODevice::ReadOnly);
+            //play
+            m_state = S_P_PLAY;
             //start
             m_q_audio_out->reset();
             m_q_audio_out->start(&m_audio_output_device);
-            //play
-            m_state = S_P_PLAY;
         }
         else m_state = S_P_STOP;
     }

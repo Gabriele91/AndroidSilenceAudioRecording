@@ -90,6 +90,8 @@ public:
         //ptr buffer
         int         buff16_size = (int)m_buf_dec.size() / sizeof(opus_int16);
         opus_int16* buff16_ptr  = (opus_int16*)m_buf_dec.data();
+		//set to -max
+		std::memset(m_buf_dec.data(), -32768, m_buf_dec.size());
         //get count of blocks
         unsigned int buff16_div;
         stream.Read(buff16_div);
@@ -100,7 +102,7 @@ public:
             int block_size = 0;
             stream.Read(block_size);
             //alloc buffer
-            std::vector < unsigned char > buffer(block_size);
+            std::vector < unsigned char > buffer(block_size,0);
             stream.ReadBits(buffer.data(), block_size*8);
             //get
             int samples_out =
@@ -117,6 +119,7 @@ public:
             //next
             buff16_ptr  += samples_out;
         }
+		//
         m_wav.append((void*)m_buf_dec.data(),
                      m_buf_dec.size()-(buff16_size * sizeof(opus_int16)),
                      wav_riff::BE_MODE);
