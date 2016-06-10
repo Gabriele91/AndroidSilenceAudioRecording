@@ -9,6 +9,7 @@ namespace Ui {
 class q_settings;
 }
 
+struct input_meta_info;
 class q_audio_player;
 class q_android_silence_audio_recording;
 class q_audio_server_listener;
@@ -41,6 +42,8 @@ private:
     //update
     QBasicTimer*       m_timer { nullptr };
     void               timerEvent(QTimerEvent *etime);
+    //init plotter
+    void init_plotter(const input_meta_info& info);
     //attribute
     q_audio_player*                    m_player;
     q_audio_server_listener*           m_listener;
