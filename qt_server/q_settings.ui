@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>500</width>
+    <width>421</width>
     <height>399</height>
    </rect>
   </property>
@@ -28,8 +28,14 @@
     <layout class="QHBoxLayout" name="m_hl_to_apply">
      <item>
       <widget class="QGroupBox" name="m_gb_settings">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="title">
-        <string>Settings</string>
+        <string>Samples</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -37,13 +43,6 @@
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QLabel" name="m_lb_samples">
-            <property name="text">
-             <string>Samples</string>
-            </property>
-           </widget>
-          </item>
           <item>
            <widget class="QComboBox" name="m_cb_samples">
             <item>
@@ -88,6 +87,18 @@
           </item>
           <item>
            <widget class="QPushButton" name="m_pb_rename">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>75</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="text">
              <string>rename</string>
             </property>
@@ -139,11 +150,42 @@
           <property name="title">
            <string/>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_6">
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
-            <widget class="QCheckBox" name="m_cb_play_stop">
+            <widget class="QCheckBox" name="m_cb_play_pause">
+             <property name="minimumSize">
+              <size>
+               <width>70</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>70</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="text">
               <string>PLAY</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="m_cb_stop">
+             <property name="minimumSize">
+              <size>
+               <width>65</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>65</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>STOP</string>
              </property>
             </widget>
            </item>
@@ -226,7 +268,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>m_cb_play_stop</sender>
+   <sender>m_cb_play_pause</sender>
    <signal>clicked()</signal>
    <receiver>q_settings</receiver>
    <slot>play_or_pause()</slot>
@@ -285,6 +327,22 @@
     </hint>
     <hint type="destinationlabel">
      <x>249</x>
+     <y>199</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_cb_stop</sender>
+   <signal>clicked()</signal>
+   <receiver>q_settings</receiver>
+   <slot>stop()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>126</x>
+     <y>317</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>210</x>
      <y>199</y>
     </hint>
    </hints>
