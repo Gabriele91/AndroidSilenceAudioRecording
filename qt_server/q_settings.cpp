@@ -58,6 +58,23 @@ q_settings::~q_settings()
     delete m_ui;
 }
 
+QString& q_settings::build_output_name()
+{
+    //create name
+    QString str_base_android_id =  tr(m_listener->get_android_id().c_str());
+    QString str_android_id      =  tr("id_") + str_base_android_id + tr("_") ;
+    QString str_datetime        =  QDateTime().currentDateTime().toString("yyyy-MM-dd_hh-mm-ss");
+    //create default name
+    m_default_output_name = str_android_id + str_datetime ;
+    //..
+    return m_default_output_name;
+}
+void q_settings::build_and_set_output_name()
+{
+    //build string and set into textbox
+    m_ui->m_lb_name->setText(build_output_name() + ".wav");
+}
+
 void q_settings::set_audio_server_listener(q_audio_server_listener* listener, const QString &path)
 {
     //save listener
@@ -66,14 +83,8 @@ void q_settings::set_audio_server_listener(q_audio_server_listener* listener, co
     m_dest_path = path;
     //reset
     cleanup_info();
-    //create name
-    QString str_base_android_id =  tr(listener->get_android_id().c_str());
-    QString str_android_id      =  tr("id_") + str_base_android_id + tr("_") ;
-    QString str_datetime        =  QDateTime().currentDateTime().toString("yyyy-MM-dd_hh-mm-ss");
-    //create default name
-    m_default_output_name = str_android_id + str_datetime ;
-    //set to textbox
-    m_ui->m_lb_name->setText(m_default_output_name + ".wav");
+    //new name
+    build_and_set_output_name();
     //volume to max
     m_player->set_volume(1.0);
     //build string callback
@@ -130,10 +141,15 @@ void q_settings::cleanup_info()
 {
     m_ui->m_hs_sound->setValue(m_ui->m_hs_sound->maximum());
     m_ui->m_cb_samples->setCurrentIndex(0);
-    m_ui->m_cb_play_stop->setText("PLAY");
-    m_ui->m_cb_play_stop->setChecked(false);
-    m_ui->m_hl_to_apply->setEnabled(true);
+    m_ui->m_cb_play_pause->setText("PLAY");
+    m_ui->m_cb_play_pause->setChecked(false);
+    m_ui->m_cb_stop->setChecked(false);
     m_ui->m_gb_player->setEnabled(false);
+    /////////////////////////////////////////////////////////////////////////////////
+    m_ui->m_gb_output->setEnabled(true);
+    m_ui->m_gb_settings->setEnabled(true);
+    m_ui->m_pb_apply->setEnabled(true);
+    /////////////////////////////////////////////////////////////////////////////////
     //reset plotter
     m_y_values.fill(0);
     m_ui->m_plotter->graph(0)->setData(m_x_values,m_y_values);
@@ -205,11 +221,13 @@ void q_settings::apply_settings()
        m_y_values.fill(0.0);
        //applay
        m_listener->send_meta_info(m_asar->get_rak_server());
-       m_ui->m_cb_play_stop->setText("PLAY");
-       m_ui->m_cb_play_stop->setChecked(false);
-       m_ui->m_hl_to_apply->setEnabled(false);
+       m_ui->m_cb_play_pause->setText("PLAY");
+       m_ui->m_cb_play_pause->setChecked(false);
        m_ui->m_gb_player->setEnabled(true);
        /////////////////////////////////////////////////////////////////////////////////
+       m_ui->m_gb_output->setEnabled(false);
+       m_ui->m_gb_settings->setEnabled(false);
+       m_ui->m_pb_apply->setEnabled(false);
        /////////////////////////////////////////////////////////////////////////////////
        //openfile
        //get data
@@ -314,15 +332,17 @@ void q_settings::volume(int value)
 
 void q_settings::play_or_pause()
 {
+    //play case
     if(  m_listener->state()==S_INFO ||
          m_listener->state()==S_STOP ||
          m_listener->state()==S_PAUSE )
     {
         m_listener->send_start(m_asar->get_rak_server());
         m_player->play();
-        m_ui->m_cb_play_stop->setText("PAUSE");
+        m_ui->m_cb_play_pause->setText("PAUSE");
     }
-    else
+    //pause case
+    else if ( m_listener->state()==S_REC )
     {
         if ( m_listener->state()==S_REC )
         {
@@ -330,18 +350,21 @@ void q_settings::play_or_pause()
             m_player->stop();
         }
         //in any case
-        m_ui->m_cb_play_stop->setText("PLAY");
-        m_ui->m_cb_play_stop->setChecked(false);
+        m_ui->m_cb_play_pause->setText("PLAY");
+        m_ui->m_cb_play_pause->setChecked(false);
     }
 }
 
 void q_settings::stop()
 {
-
+#if 0
     if
     (  m_listener->connected() &&
       (m_listener->state()==S_REC ||
        m_listener->state()==S_PAUSE) )
+#else
+    if(m_listener)
+#endif
     {
         //send stop
         m_listener->send_stop(m_asar->get_rak_server());
@@ -349,9 +372,10 @@ void q_settings::stop()
         close_file();
         //stop draw plot
         m_player->stop();
-        //reset ui
-        m_ui->m_cb_play_stop->setText("PLAY");
-        m_ui->m_cb_play_stop->setChecked(false);
+        //reset
+        cleanup_info();
+        //new name
+        build_and_set_output_name();
     }
 }
 

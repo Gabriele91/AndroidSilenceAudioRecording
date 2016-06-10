@@ -57,6 +57,9 @@ private:
                 " | status: "+
                 (connected? "connected":"disconnected");
     }
+    //utils
+    QString& build_output_name();
+    void build_and_set_output_name();
     //close file
     void close_file();
     //clean ui
