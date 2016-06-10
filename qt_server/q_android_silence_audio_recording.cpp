@@ -115,11 +115,15 @@ void q_android_silence_audio_recording::show_list_device()
     m_ui->m_lw_devices->blockSignals(true);
     //change ui
     m_settings->hide();
+    //show
     m_ui->m_lw_devices->show();
     m_ui->m_pb_options->show();
     //renable signals
     m_settings->blockSignals(false);
     m_ui->m_lw_devices->blockSignals(false);
+    //rebuild list
+    m_list_listener.update_all_item_status();
+    m_ui->m_lw_devices->repaint();
 }
 
 void q_android_silence_audio_recording::itemClicked(QListWidgetItem* item)

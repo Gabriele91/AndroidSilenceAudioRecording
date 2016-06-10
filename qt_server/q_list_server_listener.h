@@ -173,6 +173,11 @@ public:
         return m_listeners.size();
     }
 
+    bool exist(const std::string& android_id) const
+    {
+       return m_listeners.end() != m_listeners.find(android_id);
+    }
+
     row_map_listener& operator[](const RakNet::AddressOrGUID addrs)
     {
         return m_listeners[addrs.ToString()];
@@ -245,14 +250,67 @@ public:
     }
 
 
+    bool update_item_status(const std::string& android_id)
+    {
+        if(!exist(android_id)) return false;
+        auto& row = m_listeners[android_id];
+        row.m_item->setText(build_item_string(
+                               row.m_listener.get_android_id().c_str(),
+                               row.m_listener.get_imei().c_str(),
+                               row.m_listener
+                               ));
+        return true;
+    }
+
+    void update_all_item_status()
+    {
+        for(auto& it_rows : m_listeners)
+        {
+            auto& row = it_rows.second;
+            qDebug() << "rebuild" << row.m_item->text();
+            row.m_item->setText(build_item_string
+                                (
+                                   row.m_listener.get_android_id().c_str(),
+                                   row.m_listener.get_imei().c_str(),
+                                   row.m_listener
+                                ));
+            qDebug() << "rebuild" << row.m_item->text();
+        }
+    }
+
 private:
 
-    QString build_item_string(const QString& android_id,const QString& imei, bool connected = true)
+    static QString build_item_string(const QString& android_id,
+                                     const QString& imei,
+                                     bool connected = true)
     {
-        return "Android id: "+android_id+
-                (imei.size() ?" | IMEI: "+imei:"")+
+        return "Android id: "+
+                android_id +
+                (imei.size() ?" | IMEI: "+imei:"") +
                 " | status: "+
                 (connected? "connected":"disconnected");
+    }
+
+
+    static QString build_item_string(const QString& android_id,
+                                     const QString& imei,
+                                     q_audio_server_listener& listener)
+    {
+        static const char* states[] =
+        {
+            "none",             //S_NONE
+            "disconnected",     //S_DISC
+            "connected",        //S_CONN
+            "information",      //S_INFO
+            "recording",        //S_REC
+            "pause",            //S_PAUSE
+            "stop"              //S_STOP
+        };
+        return "Android id: "+
+                android_id +
+                (imei.size() ?" | IMEI: "+imei:"") +
+                " | status: "+
+                states[listener.state()];
     }
 
     map_android_id m_android_ids;

@@ -176,7 +176,13 @@ public:
         std::fwrite(buffer,size,1,m_file);
     }
 
-    void complete()
+    void append_stream(void* buffer, size_t size,endianness mode)
+    {
+        append(buffer, size, mode);
+        write_buffer_size();
+    }
+
+    void write_buffer_size()
     {
         //at end get file size
         size_t riff_chunk_size_all = std::ftell(m_file) - m_start_riff;
@@ -202,6 +208,13 @@ public:
         //set to end
         std::fseek(m_file,0,SEEK_END);
         ////////////////////////////////////////////////////////////////////////////////////
+    }
+
+    void complete()
+    {
+        //write riff size
+        write_buffer_size();
+        //append meta info
         if(m_meta_info.size()) append_info(m_meta_info);
     }
     //append

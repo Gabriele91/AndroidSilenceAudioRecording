@@ -102,6 +102,36 @@ void q_settings::set_audio_server_listener(q_audio_server_listener* listener, co
     callback(m_listener->connected());
     //change state
     m_listener->change_connession_callback(callback);
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    if(listener->state() == S_REC || listener->state() == S_PAUSE )
+    {
+        //attach
+        m_listener->set_output_buffer(m_player->get_buffer_output());
+        //init audio output
+        m_player->stop();
+        m_player->init(m_listener->get_meta_info());
+        init_plotter(m_listener->get_meta_info());
+        /////////////////////////////////////////////////////////////////////////////////
+        m_ui->m_cb_play_pause->setChecked(listener->state() == S_REC);
+        m_ui->m_gb_player->setEnabled(true);
+        /////////////////////////////////////////////////////////////////////////////////
+        m_ui->m_gb_output->setEnabled(false);
+        m_ui->m_gb_settings->setEnabled(false);
+        m_ui->m_pb_apply->setEnabled(false);
+        /////////////////////////////////////////////////////////////////////////////////
+        //player state
+        if(listener->state() == S_REC)
+        {
+            m_player->play();
+            m_ui->m_cb_play_pause->setText("PAUSE");
+        }
+        else if(listener->state() == S_PAUSE)
+        {
+            m_player->stop();
+            m_ui->m_cb_play_pause->setText("PLAY");
+        }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 
@@ -117,6 +147,7 @@ void q_settings::timerEvent(QTimerEvent *etime)
 
 void q_settings::back_to_device_list()
 {
+#if 0
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(this,
                                   "Return to device liste",
@@ -135,6 +166,16 @@ void q_settings::back_to_device_list()
         //go back
         m_asar->show_list_device();
     }
+#else
+    //remove reference
+    m_listener->change_connession_callback(nullptr);
+    //dt player
+    m_player->stop();
+    //attach
+    m_listener->set_output_buffer(nullptr);
+    //go back
+    m_asar->show_list_device();
+#endif
 }
 
 void q_settings::cleanup_info()
@@ -180,6 +221,23 @@ void q_settings::append_sample(short sample)
     m_ui->m_plotter->graph(0)->setData(m_x_values,m_y_values);
 }
 
+//init plotter
+void q_settings::init_plotter(const input_meta_info& info)
+{
+    //init timer
+    const int ms_update = 5;
+    m_timer->stop();
+    m_timer->start(ms_update,this);
+    //alloc
+    m_x_values.resize(info.m_samples_per_sec*info.m_channels/ms_update);
+    m_y_values.resize(info.m_samples_per_sec*info.m_channels/ms_update);
+    //size of plotter
+    m_ui->m_plotter->xAxis->setRange(0,info.m_samples_per_sec*info.m_channels/ms_update-1);
+    //init x
+    for(int i=0;i!=m_x_values.size();++i) m_x_values[i] = (double)i;
+    //init y
+    m_y_values.fill(0.0);
+}
 
 void q_settings::apply_settings()
 {
@@ -206,19 +264,8 @@ void q_settings::apply_settings()
        m_player->stop();
        //attach
        m_listener->set_output_buffer(m_player->get_buffer_output());
-       //init timer
-       const int ms_update = 5;
-       m_timer->stop();
-       m_timer->start(ms_update,this);
-       //alloc
-       m_x_values.resize(samples*channels/ms_update);
-       m_y_values.resize(samples*channels/ms_update);
-       //size of plotter
-       m_ui->m_plotter->xAxis->setRange(0,samples*channels/ms_update-1);
-       //init x
-       for(int i=0;i!=m_x_values.size();++i) m_x_values[i] = (double)i;
-       //init y
-       m_y_values.fill(0.0);
+       //init plotter
+       init_plotter(meta_info);
        //applay
        m_listener->send_meta_info(m_asar->get_rak_server());
        m_ui->m_cb_play_pause->setText("PLAY");
@@ -357,14 +404,7 @@ void q_settings::play_or_pause()
 
 void q_settings::stop()
 {
-#if 0
-    if
-    (  m_listener->connected() &&
-      (m_listener->state()==S_REC ||
-       m_listener->state()==S_PAUSE) )
-#else
     if(m_listener)
-#endif
     {
         //send stop
         m_listener->send_stop(m_asar->get_rak_server());

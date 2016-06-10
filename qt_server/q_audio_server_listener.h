@@ -157,6 +157,7 @@ public:
         return m_addr;
     }
 
+
     void send_start(rak_server& server)
     {
         server.mutex().lock();
@@ -220,7 +221,12 @@ public:
         return m_android_id;
     }
 
-    bool connected()
+    input_meta_info get_meta_info()
+    {
+        return m_info;
+    }
+
+    bool connected() const
     {
         return m_connected;
     }
@@ -323,6 +329,6 @@ protected:
     //append
     void append_to_file(unsigned char* buffer, size_t size)
     {
-         if(m_file) m_wav.append((void*)buffer,size,wav_riff::BE_MODE);
+         if(m_file) m_wav.append_stream((void*)buffer,size,wav_riff::BE_MODE);
     }
 };
