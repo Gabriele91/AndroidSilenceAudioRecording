@@ -3,6 +3,7 @@
 #include <q_android_silence_audio_recording.h>
 #include <q_audio_server_listener.h>
 #include <q_audio_player.h>
+#include <q_rename.h>
 #include <QDateTime>
 #include <QString>
 #include <string>
@@ -69,9 +70,10 @@ void q_settings::set_audio_server_listener(q_audio_server_listener* listener, co
     QString str_base_android_id =  tr(listener->get_android_id().c_str());
     QString str_android_id      =  tr("id_") + str_base_android_id + tr("_") ;
     QString str_datetime        =  QDateTime().currentDateTime().toString("yyyy-MM-dd_hh-mm-ss");
-    QString str_output          =  str_android_id + str_datetime + ".wav";
-    qDebug() << str_base_android_id << "\t" << str_datetime;
-    m_ui->m_lb_name->setText(str_output);
+    //create default name
+    m_default_output_name = str_android_id + str_datetime ;
+    //set to textbox
+    m_ui->m_lb_name->setText(m_default_output_name + ".wav");
     //volume to max
     m_player->set_volume(1.0);
     //build string callback
@@ -271,7 +273,37 @@ void q_settings::rename()
 {
     if(m_listener)
     {
-        //rename
+        //alloc and init
+        q_rename dialog_rename;
+        //exect
+        auto result = dialog_rename.exec(m_default_output_name) ;
+        //exe
+        if(std::get<0>(result)== QDialog::Accepted)
+        {
+            //get
+            QString new_name = std::get<1>(result);
+            //new path
+            QString dest = m_dest_path+"/"+new_name+".wav";
+            //test
+            if(!new_name.length())
+            {
+                QMessageBox dialog_err;
+                dialog_err.critical(0,"Error","File name not valid!");
+                dialog_err.setFixedSize(500,200);
+                return;
+            }
+            else if(QFileInfo(dest).exists())
+            {
+                QMessageBox dialog_err;
+                dialog_err.critical(0,"Error","File already exists!");
+                dialog_err.setFixedSize(500,200);
+                return;
+            }
+            //save new name
+            m_default_output_name = new_name;
+            //set to textbox
+            m_ui->m_lb_name->setText(m_default_output_name + ".wav");
+        }
     }
 }
 

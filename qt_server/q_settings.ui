@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>500</width>
+    <width>421</width>
     <height>399</height>
    </rect>
   </property>
@@ -28,8 +28,14 @@
     <layout class="QHBoxLayout" name="m_hl_to_apply">
      <item>
       <widget class="QGroupBox" name="m_gb_settings">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="title">
-        <string>Settings</string>
+        <string>Samples</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -37,13 +43,6 @@
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QLabel" name="m_lb_samples">
-            <property name="text">
-             <string>Samples</string>
-            </property>
-           </widget>
-          </item>
           <item>
            <widget class="QComboBox" name="m_cb_samples">
             <item>
@@ -88,6 +87,18 @@
           </item>
           <item>
            <widget class="QPushButton" name="m_pb_rename">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>75</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="text">
              <string>rename</string>
             </property>

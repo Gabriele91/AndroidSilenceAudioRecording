@@ -48,6 +48,7 @@ private:
     Ui::q_settings*                    m_ui;
     QString                            m_last_path;
     QString                            m_dest_path;
+    QString                            m_default_output_name;
     //utility
     static QString build_item_string(const QString& android_id,const QString& imei, bool connected = true)
     {
