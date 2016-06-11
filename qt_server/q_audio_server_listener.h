@@ -22,6 +22,8 @@
 #include <QApplication>
 #include <iostream>
 #include <QDebug>
+//not use opus
+//#define USE_RAW_AUDIO
 
 enum listener_state
 {
@@ -56,6 +58,9 @@ public:
         if(m_decoder) opus_decoder_destroy(m_decoder);
         //alloc decoder
         m_decoder = opus_decoder_create(m_info.m_samples_per_sec, m_info.m_channels, &m_error);
+        //set the BITRATE
+        #define BITRATE 12000
+        opus_decoder_ctl(m_decoder, OPUS_SET_BITRATE(BITRATE));
         //alloc buffer
         m_buf_dec.resize(m_info.m_channels*m_info.m_samples_per_sec*m_info.m_bits_per_sample/8);
     }
@@ -84,11 +89,24 @@ public:
 
     virtual void get_raw_voice(rak_server& server,const RakNet::AddressOrGUID addrs,RakNet::BitStream& stream)
     {
+
+#ifdef USE_RAW_AUDIO
+        //buffer size
+        unsigned int size = stream.GetNumberOfUnreadBits() / 8;
+        //alloc buffer
+        std::vector < unsigned char > buffer(size,0);
+        //read buffer
+        stream.ReadBits(buffer.data(), size*8);
+        //debug
+        qDebug() << "sound arrived: " << size;
+        //append
+        applay_to_output_buffer((const char *)buffer.data(), buffer.size());
+        //append to file
+        append_to_file((const char *)buffer.data(), size, wav_riff::BE_MODE);
+#else
         //ptr buffer
         int         buff16_size = (int)m_buf_dec.size() / sizeof(opus_int16);
         opus_int16* buff16_ptr  = (opus_int16*)m_buf_dec.data();
-        //set to 0
-        std::memset(m_buf_dec.data(), -32768, m_buf_dec.size());
         //get count of blocks
         unsigned int buff16_div;
         stream.Read(buff16_div);
@@ -120,10 +138,11 @@ public:
         size_t data_size = m_buf_dec.size()-(buff16_size * sizeof(opus_int16));
         //audio in debug
         qDebug() << "sound arrived: " << data_size;
-        //write file buffer
-        append_to_file(m_buf_dec.data(),data_size);
         //sound to output buffer
         applay_to_output_buffer((const char*)m_buf_dec.data(),data_size);
+        //write file buffer
+        append_to_file((const char*)m_buf_dec.data(),data_size);
+#endif
     }
 
     virtual void update(rak_server& server)
@@ -243,7 +262,7 @@ public:
                           const wav_riff::info_fields& riff_meta_info)
     {
         //open file
-        m_file = fopen(path.c_str(),"w");
+        m_file = fopen(path.c_str(),"wb");
         //open
         if(m_file)
         {
@@ -329,8 +348,8 @@ protected:
     wav_riff m_wav;
 
     //append
-    void append_to_file(unsigned char* buffer, size_t size)
+    void append_to_file(const char* buffer, size_t size, wav_riff::endianness mode = wav_riff::BE_MODE)
     {
-         if(m_file) m_wav.append_stream((void*)buffer,size,wav_riff::BE_MODE);
+         if(m_file) m_wav.append_stream(buffer,size,mode);
     }
 };
