@@ -304,7 +304,7 @@ private:
             "information",      //S_INFO
             "recording",        //S_REC
             "pause",            //S_PAUSE
-            "stop"              //S_STOP
+            "connected"        //"stop" //S_STOP "STOP == CONNECTED"
         };
         return "Android id: "+
                 android_id +
