@@ -13,7 +13,7 @@ std::tuple<int, QString> q_rename::exec(const QString& name)
     //set text
     m_ui->q_le_name->setText(name);
     //exec
-    return { QDialog::exec(), m_ui->q_le_name->text() };
+    return std::tuple<int, QString> ( QDialog::exec(), m_ui->q_le_name->text() );
 }
 
 q_rename::~q_rename()
