@@ -3,10 +3,12 @@
 #include <q_android_silence_audio_recording.h>
 #include <q_audio_server_listener.h>
 #include <q_audio_player.h>
+#include <q_thread_utilities.h>
 #include <q_rename.h>
 #include <QDateTime>
 #include <QString>
 #include <string>
+
 q_settings::q_settings(q_android_silence_audio_recording *parent)
 :QWidget(parent)
 ,m_asar(parent)

@@ -15,6 +15,7 @@
 #include <QApplication>
 #include <iostream>
 #include <QDebug>
+#include <q_thread_utilities.h>
 
 
 
@@ -93,9 +94,13 @@ public:
                 m_audio_output_device.close();
                 m_audio_output_device.setBuffer(&m_buffer);
                 m_audio_output_device.open(QIODevice::ReadOnly);
-                //start
-                m_q_audio_out->reset();
-                m_q_audio_out->start(&m_audio_output_device);
+                //post restart
+                post_to_main_thread([=]()
+                {
+                    //start
+                    m_q_audio_out->reset();
+                    m_q_audio_out->start(&m_audio_output_device);
+                });
             }
         });
     }
@@ -120,14 +125,15 @@ public:
 
     void stop()
     {
-        if(m_q_audio_out)
-        {
-            m_q_audio_out->stop();
-            m_audio_output_device.close();
-            m_buffer.resize(0);
-        }
         //in any cases
         m_state = S_P_STOP;
+        //stop audio
+        if(m_q_audio_out)
+        {
+            m_audio_output_device.close();
+            m_buffer.resize(0);
+            m_q_audio_out->stop();
+        }
     }
 
     void pause()
