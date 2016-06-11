@@ -15,9 +15,23 @@
 #include <QListWidgetItem>
 #include <q_audio_server_listener.h>
 
+// Qt 5 - port to main thread
+static inline void post_to_main_thread(std::function<void()> fun)
+{
+  QObject signal_source;
+  QObject::connect(&signal_source, &QObject::destroyed, qApp,
+  [=](QObject*)
+  {
+        fun();
+  },
+  Qt::QueuedConnection);
+}
+
 class q_list_server_listener : public rak_server_listener
 {
 public:
+
+
 
     struct row_map_listener
     {
@@ -47,7 +61,11 @@ public:
         //add ptr to row
         item->setData(Qt::UserRole,QVariant::fromValue<void*>(&row));
         //add item
-        m_list_widget->addItem(item);
+        post_to_main_thread([=]()
+        {
+            //appends
+            m_list_widget->addItem(item);
+        });
         //return item
         return item;
     }
@@ -74,7 +92,14 @@ public:
         //call listner
         row.m_listener.get_imei_and_android_id(server, addrs, c_imei, c_android_id);
         //set info
-        row.m_item->setText(build_item_string(c_android_id, c_imei,true));
+        post_to_main_thread([&]()
+        {
+            row.m_item->setText(build_item_string
+                                    (QString::fromUtf8(row.m_listener.get_android_id().c_str()),
+                                     QString::fromUtf8(row.m_listener.get_imei().c_str()),
+                                     true)
+                                );
+        });
     }
 
     virtual void end_connection(rak_server& server,const RakNet::AddressOrGUID addrs)
@@ -87,9 +112,12 @@ public:
             //get row
             auto& row = it_listeners->second;
             //set info
-            row.m_item->setText(build_item_string(QString::fromUtf8(row.m_listener.get_android_id().c_str()),
-                                                  QString::fromUtf8(row.m_listener.get_imei().c_str()),
-                                                  false));
+            post_to_main_thread([&]()
+            {
+                row.m_item->setText(build_item_string(QString::fromUtf8(row.m_listener.get_android_id().c_str()),
+                                                      QString::fromUtf8(row.m_listener.get_imei().c_str()),
+                                                      false));
+            });
             //call listner
             row.m_listener.end_connection(server,addrs);
         }
@@ -122,9 +150,12 @@ public:
             //get row
             auto& row = it_listeners->second;
             //set info
-            row.m_item->setText(build_item_string(QString::fromUtf8(row.m_listener.get_android_id().c_str()),
-                                                  QString::fromUtf8(row.m_listener.get_imei().c_str()),
-                                                  false));
+            post_to_main_thread([&]()
+            {
+                row.m_item->setText(build_item_string(QString::fromUtf8(row.m_listener.get_android_id().c_str()),
+                                                      QString::fromUtf8(row.m_listener.get_imei().c_str()),
+                                                      false));
+            });
             //call listner
             row.m_listener.fail_connection(server,addrs);
         }
