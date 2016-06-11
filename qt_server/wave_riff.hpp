@@ -154,7 +154,7 @@ public:
     }
 
 
-    void append(void* buffer, size_t size,endianness mode)
+    void append(const char* buffer, size_t size,endianness mode)
     {
 #if BYTE_ORDER == LITTLE_ENDIAN
         if(mode == BE_MODE)
@@ -176,7 +176,7 @@ public:
         std::fwrite(buffer,size,1,m_file);
     }
 
-    void append_stream(void* buffer, size_t size,endianness mode)
+    void append_stream(const char* buffer, size_t size,endianness mode)
     {
         append(buffer, size, mode);
         write_buffer_size();

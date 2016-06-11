@@ -420,10 +420,10 @@ void q_settings::stop()
     {
         //send stop
         m_listener->send_stop(m_asar->get_rak_server());
-        //save file
-        close_file();
         //stop draw plot
         m_player->stop();
+        //save file
+        close_file();
         //reset
         cleanup_info();
         //new name

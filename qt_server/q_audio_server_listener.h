@@ -56,6 +56,9 @@ public:
         if(m_decoder) opus_decoder_destroy(m_decoder);
         //alloc decoder
         m_decoder = opus_decoder_create(m_info.m_samples_per_sec, m_info.m_channels, &m_error);
+        //set the BITRATE
+        #define BITRATE 12000
+        opus_decoder_ctl(m_decoder, OPUS_SET_BITRATE(BITRATE));
         //alloc buffer
         m_buf_dec.resize(m_info.m_channels*m_info.m_samples_per_sec*m_info.m_bits_per_sample/8);
     }
@@ -87,8 +90,6 @@ public:
         //ptr buffer
         int         buff16_size = (int)m_buf_dec.size() / sizeof(opus_int16);
         opus_int16* buff16_ptr  = (opus_int16*)m_buf_dec.data();
-        //set to 0
-        std::memset(m_buf_dec.data(), -32768, m_buf_dec.size());
         //get count of blocks
         unsigned int buff16_div;
         stream.Read(buff16_div);
@@ -120,10 +121,10 @@ public:
         size_t data_size = m_buf_dec.size()-(buff16_size * sizeof(opus_int16));
         //audio in debug
         qDebug() << "sound arrived: " << data_size;
-        //write file buffer
-        append_to_file(m_buf_dec.data(),data_size);
         //sound to output buffer
         applay_to_output_buffer((const char*)m_buf_dec.data(),data_size);
+        //write file buffer
+        append_to_file((const char*)m_buf_dec.data(),data_size);
     }
 
     virtual void update(rak_server& server)
@@ -329,8 +330,8 @@ protected:
     wav_riff m_wav;
 
     //append
-    void append_to_file(unsigned char* buffer, size_t size)
+    void append_to_file(const char* buffer, size_t size)
     {
-         if(m_file) m_wav.append_stream((void*)buffer,size,wav_riff::BE_MODE);
+         if(m_file) m_wav.append_stream(buffer,size,wav_riff::BE_MODE);
     }
 };
