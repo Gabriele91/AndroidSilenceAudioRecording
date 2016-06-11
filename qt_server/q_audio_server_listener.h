@@ -234,7 +234,7 @@ public:
     }
 
 
-    void change_connession_callback(std::function<void(bool)> callback)
+    void set_callback_of_connection_changed_the_state(std::function<void(bool)> callback)
     {
         m_connection_cb = callback;
     }
