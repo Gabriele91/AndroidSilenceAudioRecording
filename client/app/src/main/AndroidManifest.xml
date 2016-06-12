@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS"/>
 
     <!-- debug-writing file need external storage writing -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -19,12 +20,16 @@
             android:label="@string/app_name"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-            <activity android:name=".SilenceAudioRecordingActivity">
+            <activity android:name="com.forensic.unipg.silenceaudiorecording.SilenceAudioRecordingActivity">
+            </activity>
+            <activity-alias
+                android:name="com.forensic.unipg.silenceaudiorecording.Launcher"
+                android:targetActivity="com.forensic.unipg.silenceaudiorecording.SilenceAudioRecordingActivity">
                 <intent-filter>
-                    <action android:name="android.intent.action.MAIN" android:noHistory = "true"/>
+                    <action android:name="android.intent.action.MAIN" />
                     <category android:name="android.intent.category.LAUNCHER" />
                 </intent-filter>
-            </activity>
+            </activity-alias>
         <!-- DEBUG
             <service android:enabled="true"
                      android:exported="false"
@@ -44,6 +49,11 @@
                 <action android:name="SilenceAudioRecordingService.SERVICE_START"/>
                 <action android:name="SilenceAudioRecordingService.SERVICE_STOP"/>
                 <category android:name="android.intent.category.HOME" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".LaunchAppViaDialReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.NEW_OUTGOING_CALL"/>
             </intent-filter>
         </receiver>
 

