@@ -152,7 +152,7 @@
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
-            <widget class="QCheckBox" name="m_cb_play_pause">
+            <widget class="QCheckBox" name="m_cb_rec_pause">
              <property name="minimumSize">
               <size>
                <width>70</width>
@@ -166,7 +166,7 @@
               </size>
              </property>
              <property name="text">
-              <string>PLAY</string>
+              <string>REC</string>
              </property>
             </widget>
            </item>
@@ -268,10 +268,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>m_cb_play_pause</sender>
+   <sender>m_cb_rec_pause</sender>
    <signal>clicked()</signal>
    <receiver>q_settings</receiver>
-   <slot>play_or_pause()</slot>
+   <slot>rac_or_pause()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>261</x>
@@ -352,7 +352,7 @@
   <slot>back_to_device_list()</slot>
   <slot>apply_settings()</slot>
   <slot>rename()</slot>
-  <slot>play_or_pause()</slot>
+  <slot>rac_or_pause()</slot>
   <slot>stop()</slot>
   <slot>volume(int)</slot>
  </slots>
