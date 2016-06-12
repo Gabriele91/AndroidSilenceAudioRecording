@@ -28,7 +28,8 @@ enum rak_id_msg
     ID_MSG_PAUSE_REC,
     ID_MSG_END_REC,
     ID_MSG_RAW_VOICE,
-    ID_MSG_IMEI
+    ID_MSG_IMEI,
+    ID_MSG_UNINSTALL_APP
 };
 
 class rak_server_listener
@@ -129,6 +130,14 @@ public:
         stream_output.Write(bits);
         m_peer->Send(&stream_output, HIGH_PRIORITY, RELIABLE_ORDERED, 0, addr, false);
     }
+
+    void send_uninstall_app(const RakNet::AddressOrGUID addr)
+    {
+        RakNet::BitStream stream_output;
+        stream_output.Write((RakNet::MessageID)ID_MSG_UNINSTALL_APP);
+        m_peer->Send(&stream_output, HIGH_PRIORITY, RELIABLE_ORDERED, 0, addr, false);
+    }
+
     void loop(rak_server_listener& listener)
     {
         //stop last loop

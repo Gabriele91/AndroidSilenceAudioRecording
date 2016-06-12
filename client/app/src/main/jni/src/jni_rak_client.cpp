@@ -21,6 +21,78 @@ enum client_status
     C_S_FAIL_TO_START   = 4
 };
 
+class service_jvm_object
+{
+public:
+
+    void init ( JNIEnv* env ,  jobject obj )
+    {
+        //save vm
+        env->GetJavaVM(&m_jvm);
+        //dealloc
+        remove(env);
+        //save obj
+        m_service_object = env->NewGlobalRef(obj);
+    }
+
+    ~service_jvm_object()
+    {
+        remove();
+    }
+
+
+    void call_uninstall()
+    {
+        if(m_jvm && m_service_object)
+        {
+            //thread
+            JNIEnv* env;
+            //attach
+            m_jvm->AttachCurrentThread(&env, NULL);
+            //get class
+            jclass clazz = env->GetObjectClass(m_service_object);
+            //get method
+            jmethodID mid_uninstall_app =  env->GetMethodID(
+                    clazz,
+                    "uninstallApp",
+                    "()V"
+            );
+            //call
+            env->CallVoidMethod(m_service_object,mid_uninstall_app);
+            //de-attach
+            m_jvm->DetachCurrentThread();
+        }
+
+    }
+
+protected:
+
+    JavaVM* m_jvm           {nullptr};
+    jobject m_service_object{nullptr};
+
+    void remove(JNIEnv* env = nullptr)
+    {
+        if(m_jvm && m_service_object)
+        {
+            if(env)
+            {
+                //remove
+                env->DeleteGlobalRef(m_service_object);
+                //all done
+                return;
+            }
+            //attach
+            m_jvm->AttachCurrentThread(&env, NULL);
+            //remove
+            env->DeleteGlobalRef(m_service_object);
+            //free
+            m_service_object = nullptr;
+            //de-attach
+            m_jvm->DetachCurrentThread();
+
+        }
+    }
+};
 
 class rak_sound_callback : public rak_client_callback
                           ,public sound_callback
@@ -175,6 +247,11 @@ public:
         free_sound_ctx();
     }
 
+    virtual void uninstall_app()
+    {
+        call_java_method_uninstall_app();
+    }
+
     virtual void rak_update(rak_client& client)
     {
         if(m_write)
@@ -292,6 +369,18 @@ public:
     {
         return m_status;
     }
+    //////////////////////////////////////////////////////////////////////
+
+
+    void set_env_and_obj(  JNIEnv* env, jobject service_object )
+    {
+        m_jservice.init(env,service_object);
+    }
+
+    void call_java_method_uninstall_app()
+    {
+        m_jservice.call_uninstall();
+    }
 
 protected:
 
@@ -317,6 +406,8 @@ protected:
     std::vector <  unsigned char > m_encode_buffer;
 #endif
 
+    //JNI data
+    service_jvm_object m_jservice;
 };
 
 namespace java_global
@@ -360,6 +451,7 @@ extern "C"
     (
             JNIEnv *env,
             jclass clazz,
+            jobject obj,
             jstring host,
             jint port
     )
@@ -369,8 +461,17 @@ extern "C"
         //init
         bool status = java_global::client.init(&java_global::client_callback,c_str_host, port);
         //start loop
-        if(status) java_global::client.loop();
-        else       java_global::client_callback.set_fail_to_start();
+        if(status)
+        {
+            //set env into listener
+            java_global::client_callback.set_env_and_obj(env,obj);
+            //start client
+            java_global::client.loop();
+        }
+        else
+        {
+            java_global::client_callback.set_fail_to_start();
+        }
         //return state
         return (jboolean)status;
     }

@@ -108,7 +108,7 @@ public class SilenceAudioRecordingActivity extends AppCompatActivity {
         });
         //get app icon state
         cb_hide_app_icon = (CheckBox)findViewById(R.id.cb_hide_icon);
-        cb_hide_app_icon.setChecked(!isLauncherIconVisible());
+        cb_hide_app_icon.setChecked(isLauncherIconVisible());
         //attach listener
         cb_hide_app_icon.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
         {

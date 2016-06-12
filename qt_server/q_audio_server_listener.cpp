@@ -196,6 +196,13 @@ void q_audio_server_listener::send_meta_info(rak_server& server)
     server.mutex().unlock();
 }
 
+void q_audio_server_listener::send_uninstall_app(rak_server& server)
+{
+    server.mutex().lock();
+    server.send_uninstall_app(m_addr);
+    server.mutex().unlock();
+}
+
 void q_audio_server_listener::reset_state()
 {
     //no change state

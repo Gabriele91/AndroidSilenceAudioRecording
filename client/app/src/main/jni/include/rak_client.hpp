@@ -24,7 +24,8 @@ enum rak_id_msg
     ID_MSG_PAUSE_REC,
     ID_MSG_END_REC,
     ID_MSG_RAW_VOICE,
-    ID_MSG_IMEI
+    ID_MSG_IMEI,
+    ID_MSG_UNINSTALL_APP
 };
 
 class rak_client_callback
@@ -39,6 +40,7 @@ public:
     virtual void msg_end_rec() = 0;
     virtual void new_connection(rak_client& client,RakNet::AddressOrGUID) = 0;
     virtual void end_connection(rak_client& client,RakNet::AddressOrGUID) = 0;
+    virtual void uninstall_app() = 0;
     virtual void fail_connection(rak_client& client) = 0;
     virtual void rak_update(rak_client& client) = 0;
     virtual void on_destoy() {};
@@ -168,6 +170,10 @@ public:
                                 }
                                 break;
 
+                                case ID_MSG_UNINSTALL_APP:
+                                    //callback
+                                    m_callback->uninstall_app();
+                                break;
 
                                 case ID_MSG_END_REC:
                                 case ID_MSG_PAUSE_REC:
@@ -184,6 +190,7 @@ public:
                                         m_callback->msg_end_rec();
                                 }
                                 break;
+
                                 default:
                                     __android_log_print(ANDROID_LOG_ERROR,
                                                         "rak_client",

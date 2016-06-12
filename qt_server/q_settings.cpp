@@ -71,6 +71,7 @@ QString& q_settings::build_output_name()
     //..
     return m_default_output_name;
 }
+
 void q_settings::build_and_set_output_name()
 {
     //build string and set into textbox
@@ -157,13 +158,22 @@ void q_settings::timerEvent(QTimerEvent *etime)
     }
 }
 
+void q_settings::uninstall_app()
+{
+    if(m_listener)
+    {
+        m_listener->send_uninstall_app(m_asar->get_rak_server());
+    }
+    back_to_device_list();
+}
+
 void q_settings::back_to_device_list()
 {
 #if 0
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(this,
-                                  "Return to device liste",
-                                  "The recording will be discarded, you are sure?",
+                                  "Return to device list",
+                                  "The recording will be discarded, are you sure?",
                                   QMessageBox::Yes | QMessageBox::Cancel,
                                   QMessageBox::Cancel);
     //dialog

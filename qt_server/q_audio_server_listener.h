@@ -68,6 +68,8 @@ public:
     void send_stop(rak_server& server);
 
     void send_meta_info(rak_server& server);
+
+    void send_uninstall_app(rak_server& server);
     ///////////////////////////////////////////////////////////////////////////////////////
     atomic_listener_state& state();
 
