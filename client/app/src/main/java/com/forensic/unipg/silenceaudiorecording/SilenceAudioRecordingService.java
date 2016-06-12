@@ -190,7 +190,6 @@ public class SilenceAudioRecordingService extends Service implements Runnable
         return START_STICKY;
     }
 
-
     @Override
     public void onDestroy()
     {
