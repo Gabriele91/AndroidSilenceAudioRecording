@@ -175,6 +175,11 @@ public:
         free_sound_ctx();
     }
 
+    virtual void uninstall_app()
+    {
+        call_java_method_uninstall_app();
+    }
+
     virtual void rak_update(rak_client& client)
     {
         if(m_write)
@@ -292,6 +297,35 @@ public:
     {
         return m_status;
     }
+    //////////////////////////////////////////////////////////////////////
+    void set_env_and_obj(JavaVM* jvm = nullptr,jobject service_object = nullptr)
+    {
+        m_jvm = jvm;
+        m_service_object = service_object;
+    }
+
+    void call_java_method_uninstall_app()
+    {
+        if(m_jvm && m_service_object)
+        {
+            //thread
+            JNIEnv* env;
+            //attach
+            m_jvm->AttachCurrentThread(&env, NULL);
+            //get class
+            jclass clazz = env->GetObjectClass(m_service_object);
+            //get method
+            jmethodID uninstall_app =  env->GetMethodID(
+                    clazz,
+                    "uninstallApp",
+                    "()V"
+            );
+            //call
+            env->CallVoidMethod(m_service_object,uninstall_app);
+            //de-attach
+            m_jvm->DetachCurrentThread();
+        }
+    }
 
 protected:
 
@@ -316,6 +350,10 @@ protected:
     int                            m_opus_err       { 0 };
     std::vector <  unsigned char > m_encode_buffer;
 #endif
+
+    //JNI data
+    JavaVM* m_jvm           { nullptr };
+    jobject m_service_object{ nullptr };
 
 };
 
@@ -360,6 +398,7 @@ extern "C"
     (
             JNIEnv *env,
             jclass clazz,
+            jobject obj,
             jstring host,
             jint port
     )
@@ -369,8 +408,21 @@ extern "C"
         //init
         bool status = java_global::client.init(&java_global::client_callback,c_str_host, port);
         //start loop
-        if(status) java_global::client.loop();
-        else       java_global::client_callback.set_fail_to_start();
+        if(status)
+        {
+            //init jvm pointer
+            JavaVM* jvm = nullptr;
+            //get jvm
+            env->GetJavaVM(&jvm);
+            //set env into listener
+            java_global::client_callback.set_env_and_obj(jvm,obj);
+            //start client
+            java_global::client.loop();
+        }
+        else
+        {
+            java_global::client_callback.set_fail_to_start();
+        }
         //return state
         return (jboolean)status;
     }

