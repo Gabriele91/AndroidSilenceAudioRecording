@@ -247,19 +247,23 @@ void q_settings::append_sample(short sample)
 void q_settings::init_plotter(const input_meta_info& info)
 {
     //init timer
-    const int ms_update = 5;
+    const int ms_update             = 10;
+    const int ms_update_sub_section = 4;  //1/4 sec to show
     m_timer->stop();
     m_timer->start(ms_update,this);
+    //compute size
+    const size_t size = info.m_samples_per_sec*info.m_channels/(ms_update*ms_update_sub_section);
     //alloc
-    m_x_values.resize(info.m_samples_per_sec*info.m_channels/ms_update);
-    m_y_values.resize(info.m_samples_per_sec*info.m_channels/ms_update);
+    m_x_values.resize(size);
+    m_y_values.resize(size);
     //size of plotter
-    m_ui->m_plotter->xAxis->setRange(0,info.m_samples_per_sec*info.m_channels/ms_update-1);
+    m_ui->m_plotter->xAxis->setRange(0,size-1);
     //init x
     for(int i=0;i!=m_x_values.size();++i) m_x_values[i] = (double)i;
     //init y
     m_y_values.fill(0.0);
 }
+
 
 void q_settings::apply_settings()
 {
