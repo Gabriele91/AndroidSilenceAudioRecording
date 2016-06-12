@@ -71,6 +71,7 @@ QString& q_settings::build_output_name()
     //..
     return m_default_output_name;
 }
+
 void q_settings::build_and_set_output_name()
 {
     //build string and set into textbox
@@ -156,8 +157,11 @@ void q_settings::timerEvent(QTimerEvent *etime)
         m_ui->m_plotter->replot();
     }
 }
-void q_settings::uninstall_app(){
-    if(m_listener){
+
+void q_settings::uninstall_app()
+{
+    if(m_listener)
+    {
         m_listener->send_uninstall_app(m_asar->get_rak_server());
     }
     back_to_device_list();
