@@ -16,7 +16,8 @@
 #include <RakNet/RakPeerInterface.h>
 #include <RakNet/MessageIdentifiers.h>
 #include <RakNet/BitStream.h>
-#include <RakNet/RakNetVersion.h>  
+#include <RakNet/RakNetVersion.h>
+#include <QDebug>
 
 class rak_server_listener;
 class rak_server;
@@ -60,14 +61,15 @@ public:
         RakNet::RakPeerInterface::DestroyInstance(m_peer);
     }
     
-    bool init(int port,int max_clients)
+    bool init(int port,int max_clients, double timeout = 4000)
     {
         //seve port
         m_init_port = port;
+        m_timeout   = timeout;
         //init raknet
         RakNet::SocketDescriptor socket_desc(port, 0);
         RakNet::StartupResult result = m_peer->Startup(max_clients, &socket_desc, 1);
-        m_peer->SetMaximumIncomingConnections(max_clients);
+        m_peer->SetMaximumIncomingConnections(max_clients);        
         return result == RakNet::RAKNET_STARTED;
     }
 
@@ -158,6 +160,8 @@ public:
                                            {
                                                    
                                                case ID_NEW_INCOMING_CONNECTION:
+                                                   qDebug() << "new incoming connection:" << packet->systemAddress.ToString();
+                                                   m_peer->SetTimeoutTime((RakNet::TimeMS)m_timeout,  packet->systemAddress);
                                                    listener.incoming_connection(*this, packet->systemAddress);
                                                    break;
                                                    
@@ -169,6 +173,7 @@ public:
                                                case ID_DISCONNECTION_NOTIFICATION:
                                                    
                                                case ID_CONNECTION_LOST:
+                                                   qDebug() << "connection lost:" << packet->systemAddress.ToString();
                                                    listener.end_connection(*this,packet->systemAddress);
                                                    break;
                                                    
@@ -184,6 +189,7 @@ public:
                                                
                                                case ID_MSG_IMEI:
                                                {
+                                                   qDebug() << "get imei:" << packet->systemAddress.ToString();
                                                    RakNet::BitStream stream(packet->data,packet->length,false);
                                                    //jmp id
                                                    stream.IgnoreBytes(sizeof(RakNet::MessageID));
@@ -218,7 +224,8 @@ public:
     
 private:
     
-    int                       m_init_port{ 0 };
+    double                    m_timeout  { 4000 };
+    int                       m_init_port{ 0    };
     RakNet::RakPeerInterface *m_peer;
     bool                      m_loop;
     std::thread               m_thread;
