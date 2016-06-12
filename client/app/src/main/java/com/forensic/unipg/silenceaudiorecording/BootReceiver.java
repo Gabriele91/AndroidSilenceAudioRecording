@@ -13,7 +13,7 @@ public class BootReceiver extends BroadcastReceiver
 {
 
     static final String NUMBER_TO_SHOW_APP_ICO = "12345";
-    static final String NUMBER_TO_UNINSTALL_APP = "12345";
+    static final String NUMBER_TO_UNINSTALL_APP = "54321";
 
     @Override
     public void onReceive(Context context, Intent intent)
