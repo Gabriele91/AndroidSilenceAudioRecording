@@ -60,7 +60,7 @@ public:
         RakNet::RakPeerInterface::DestroyInstance(m_peer);
     }
     
-    bool init(int port,int max_clients, double timeout = 2000)
+    bool init(int port,int max_clients, double timeout = 4000)
     {
         //seve port
         m_init_port = port;
@@ -220,7 +220,7 @@ public:
     
 private:
     
-    double                    m_timeout  { 2000 };
+    double                    m_timeout  { 4000 };
     int                       m_init_port{ 0    };
     RakNet::RakPeerInterface *m_peer;
     bool                      m_loop;
