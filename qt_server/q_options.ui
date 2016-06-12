@@ -147,7 +147,7 @@
    <sender>m_pb_path</sender>
    <signal>clicked()</signal>
    <receiver>q_options</receiver>
-   <slot>set_path()</slot>
+   <slot>set_path_from_ui()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>49</x>
@@ -156,22 +156,6 @@
     <hint type="destinationlabel">
      <x>137</x>
      <y>35</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>m_sb_port</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>q_options</receiver>
-   <slot>set_port(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>137</x>
-     <y>23</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>285</x>
-     <y>39</y>
     </hint>
    </hints>
   </connection>
@@ -209,8 +193,7 @@
   </connection>
  </connections>
  <slots>
-  <slot>set_path()</slot>
-  <slot>set_port(int)</slot>
+  <slot>set_path_from_ui()</slot>
   <slot>accepted()</slot>
   <slot>rejected()</slot>
  </slots>

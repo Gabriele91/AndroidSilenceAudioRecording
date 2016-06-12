@@ -43,6 +43,18 @@ int q_options::exec()
 }
 
 
+void q_options::set_port(int port)
+{
+    m_settings.setValue("PORT",port);
+    m_ui->m_sb_port->setValue(get_port());
+}
+
+void q_options::set_path(const QString& path)
+{
+    m_settings.setValue("PATH",path);
+    m_ui->m_le_path->setText(get_path());
+}
+
 void q_options::accepted()
 {
     m_close_state = QMessageBox::Ok;
@@ -60,7 +72,7 @@ void q_options::rejected()
     close();
 }
 
-void q_options::set_path()
+void q_options::set_path_from_ui()
 {
     QString default_path =
     QFileDialog::getExistingDirectory(this,
@@ -84,11 +96,6 @@ void q_options::set_path()
             );
         }
     }
-}
-
-void q_options::set_port(int port)
-{
-    //none
 }
 
 QString q_options::get_path() const

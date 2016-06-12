@@ -29,7 +29,7 @@ public slots:
     void back_to_device_list();
     void apply_settings();
     void rename();
-    void play_or_pause();
+    void rac_or_pause();
     void stop();
     void volume(int value);
 

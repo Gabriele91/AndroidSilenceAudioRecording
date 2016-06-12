@@ -124,7 +124,7 @@ void q_settings::set_audio_server_listener(q_audio_server_listener* listener, co
         m_player->init(m_listener->get_meta_info());
         init_plotter(m_listener->get_meta_info());
         /////////////////////////////////////////////////////////////////////////////////
-        m_ui->m_cb_play_pause->setChecked(listener->state() == S_REC);
+        m_ui->m_cb_rec_pause->setChecked(listener->state() == S_REC);
         m_ui->m_gb_player->setEnabled(true);
         /////////////////////////////////////////////////////////////////////////////////
         m_ui->m_gb_output->setEnabled(false);
@@ -135,12 +135,12 @@ void q_settings::set_audio_server_listener(q_audio_server_listener* listener, co
         if(listener->state() == S_REC)
         {
             m_player->play();
-            m_ui->m_cb_play_pause->setText("PAUSE");
+            m_ui->m_cb_rec_pause->setText("PAUSE");
         }
         else if(listener->state() == S_PAUSE)
         {
             m_player->stop();
-            m_ui->m_cb_play_pause->setText("PLAY");
+            m_ui->m_cb_rec_pause->setText("REC");
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -194,8 +194,8 @@ void q_settings::cleanup_info()
 {
     m_ui->m_hs_sound->setValue(m_ui->m_hs_sound->maximum());
     m_ui->m_cb_samples->setCurrentIndex(0);
-    m_ui->m_cb_play_pause->setText("PLAY");
-    m_ui->m_cb_play_pause->setChecked(false);
+    m_ui->m_cb_rec_pause->setText("REC");
+    m_ui->m_cb_rec_pause->setChecked(false);
     m_ui->m_cb_stop->setChecked(false);
     m_ui->m_gb_player->setEnabled(false);
     /////////////////////////////////////////////////////////////////////////////////
@@ -280,8 +280,8 @@ void q_settings::apply_settings()
        init_plotter(meta_info);
        //applay
        m_listener->send_meta_info(m_asar->get_rak_server());
-       m_ui->m_cb_play_pause->setText("PLAY");
-       m_ui->m_cb_play_pause->setChecked(false);
+       m_ui->m_cb_rec_pause->setText("REC");
+       m_ui->m_cb_rec_pause->setChecked(false);
        m_ui->m_gb_player->setEnabled(true);
        /////////////////////////////////////////////////////////////////////////////////
        m_ui->m_gb_output->setEnabled(false);
@@ -325,26 +325,6 @@ void q_settings::apply_settings()
    }
 }
 
-static bool create_file_md5(const QString &file_path)
-{
-   QFile i_file(file_path);
-   QFile o_file(file_path+".md5");
-   QCryptographicHash hash(QCryptographicHash::Md5);
-   QByteArray hash_res;
-
-   if (i_file.open(QFile::ReadOnly) &&
-       o_file.open(QFile::WriteOnly) &&
-       hash.addData(&i_file))
-   {
-       //get res
-       hash_res = hash.result();
-       //write to file
-       o_file.write(hash_res.toHex());
-       //ok
-       return true;
-   }
-   return false;
-}
 
 void q_settings::rename()
 {
@@ -389,7 +369,7 @@ void q_settings::volume(int value)
     m_player->set_volume((double(m_ui->m_hs_sound->value()))/100.0);
 }
 
-void q_settings::play_or_pause()
+void q_settings::rac_or_pause()
 {
     //play case
     if(  m_listener->state()==S_INFO ||
@@ -398,7 +378,7 @@ void q_settings::play_or_pause()
     {
         m_listener->send_start(m_asar->get_rak_server());
         m_player->play();
-        m_ui->m_cb_play_pause->setText("PAUSE");
+        m_ui->m_cb_rec_pause->setText("PAUSE");
     }
     //pause case
     else if ( m_listener->state()==S_REC )
@@ -409,8 +389,8 @@ void q_settings::play_or_pause()
             m_player->stop();
         }
         //in any case
-        m_ui->m_cb_play_pause->setText("PLAY");
-        m_ui->m_cb_play_pause->setChecked(false);
+        m_ui->m_cb_rec_pause->setText("REC");
+        m_ui->m_cb_rec_pause->setChecked(false);
     }
 }
 
@@ -433,19 +413,5 @@ void q_settings::stop()
 
 void q_settings::close_file()
 {
-    //path
-    auto& file_path_name = m_listener->get_output_path();
-    //try to save
-    if(m_listener->close_output_file())
-    {
-        //create md5 file
-        if(!create_file_md5(file_path_name))
-        {
-            QMessageBox::about(this,"Abort","Fail to create hash file.\nCan't save : "+file_path_name+".md5");
-        }
-    }
-    else
-    {
-        QMessageBox::about(this,"Abort","Fail to save file.\nCan't save : "+file_path_name);
-    }
+    m_listener->close_output_file_ui(this);
 }

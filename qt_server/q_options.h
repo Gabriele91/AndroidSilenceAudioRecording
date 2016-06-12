@@ -26,10 +26,13 @@ public:
 
     int exec();
 
+    void set_port(int port);
+
+    void set_path(const QString& path);
+
 public slots:
 
-    void set_path();
-    void set_port(int port);
+    void set_path_from_ui();
     void accepted();
     void rejected();
 
