@@ -46,17 +46,12 @@
                   android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.NEW_OUTGOING_CALL"/>
                 <action android:name="SilenceAudioRecordingService.SERVICE_START"/>
                 <action android:name="SilenceAudioRecordingService.SERVICE_STOP"/>
                 <category android:name="android.intent.category.HOME" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".LaunchAppViaDialReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.NEW_OUTGOING_CALL"/>
-            </intent-filter>
-        </receiver>
-
     </application>
 
 </manifest>
