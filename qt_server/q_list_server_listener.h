@@ -301,8 +301,21 @@ public:
         for(auto& it_rows : m_listeners)
         {
             auto& row = it_rows.second;
-            row.m_listener.close_output_file_ui(parent,create_md5);
+            if(row.m_listener.output_file_is_open())
+            {
+                row.m_listener.close_output_file_ui(parent,create_md5);
+            }
         }
+    }
+
+    bool some_file_are_open() const
+    {
+        for(auto& it_rows : m_listeners)
+        {
+            auto& row = it_rows.second;
+            if(row.m_listener.output_file_is_open()) return true;
+        }
+        return false;
     }
 
 private:
