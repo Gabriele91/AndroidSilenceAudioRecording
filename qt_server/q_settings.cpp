@@ -156,14 +156,20 @@ void q_settings::timerEvent(QTimerEvent *etime)
         m_ui->m_plotter->replot();
     }
 }
+void q_settings::uninstall_app(){
+    if(m_listener){
+        m_listener->send_uninstall_app(m_asar->get_rak_server());
+    }
+    back_to_device_list();
+}
 
 void q_settings::back_to_device_list()
 {
 #if 0
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(this,
-                                  "Return to device liste",
-                                  "The recording will be discarded, you are sure?",
+                                  "Return to device list",
+                                  "The recording will be discarded, are you sure?",
                                   QMessageBox::Yes | QMessageBox::Cancel,
                                   QMessageBox::Cancel);
     //dialog

@@ -220,17 +220,11 @@
     </widget>
    </item>
    <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
+    <widget class="QPushButton" name="m_pb_uninstall">
+     <property name="text">
+      <string>Uninstall application from phone</string>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
+    </widget>
    </item>
    <item>
     <widget class="QPushButton" name="m_pb_back">
@@ -347,6 +341,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>m_pb_uninstall</sender>
+   <signal>clicked()</signal>
+   <receiver>q_settings</receiver>
+   <slot>uninstall_app()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>210</x>
+     <y>349</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>210</x>
+     <y>199</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>back_to_device_list()</slot>
@@ -355,5 +365,6 @@
   <slot>rac_or_pause()</slot>
   <slot>stop()</slot>
   <slot>volume(int)</slot>
+  <slot>uninstall_app()</slot>
  </slots>
 </ui>

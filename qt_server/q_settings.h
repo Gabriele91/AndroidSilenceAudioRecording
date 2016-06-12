@@ -25,7 +25,7 @@ public:
     void set_audio_server_listener(q_audio_server_listener* listener,const QString& path);
 
 public slots:
-
+    void uninstall_app();
     void back_to_device_list();
     void apply_settings();
     void rename();
