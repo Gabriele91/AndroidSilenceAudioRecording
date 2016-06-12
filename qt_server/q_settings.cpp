@@ -26,7 +26,7 @@ q_settings::q_settings(q_android_silence_audio_recording *parent)
     m_ui->m_plotter->yAxis->setTickLabels(false);
     m_ui->m_plotter->xAxis->setVisible(false);
     m_ui->m_plotter->yAxis->setVisible(false);
-    m_ui->m_plotter->yAxis->setRange(-150,150);
+    m_ui->m_plotter->yAxis->setRange(-32768,32767);
     m_ui->m_plotter->axisRect()->setAutoMargins(QCP::msNone);
     m_ui->m_plotter->axisRect()->setMargins(QMargins(0,0,0,0));
     //set default pen
