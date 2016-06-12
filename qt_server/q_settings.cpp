@@ -325,26 +325,6 @@ void q_settings::apply_settings()
    }
 }
 
-static bool create_file_md5(const QString &file_path)
-{
-   QFile i_file(file_path);
-   QFile o_file(file_path+".md5");
-   QCryptographicHash hash(QCryptographicHash::Md5);
-   QByteArray hash_res;
-
-   if (i_file.open(QFile::ReadOnly) &&
-       o_file.open(QFile::WriteOnly) &&
-       hash.addData(&i_file))
-   {
-       //get res
-       hash_res = hash.result();
-       //write to file
-       o_file.write(hash_res.toHex());
-       //ok
-       return true;
-   }
-   return false;
-}
 
 void q_settings::rename()
 {
@@ -433,19 +413,5 @@ void q_settings::stop()
 
 void q_settings::close_file()
 {
-    //path
-    auto& file_path_name = m_listener->get_output_path();
-    //try to save
-    if(m_listener->close_output_file())
-    {
-        //create md5 file
-        if(!create_file_md5(file_path_name))
-        {
-            QMessageBox::about(this,"Abort","Fail to create hash file.\nCan't save : "+file_path_name+".md5");
-        }
-    }
-    else
-    {
-        QMessageBox::about(this,"Abort","Fail to save file.\nCan't save : "+file_path_name);
-    }
+    m_listener->close_output_file_ui(this);
 }

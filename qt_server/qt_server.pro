@@ -21,7 +21,8 @@ SOURCES += main.cpp\
         q_android_silence_audio_recording.cpp \
     q_settings.cpp \
     q_options.cpp \
-    q_rename.cpp
+    q_rename.cpp \
+    q_audio_server_listener.cpp
 
 HEADERS  += q_android_silence_audio_recording.h \
     rak_server.hpp \

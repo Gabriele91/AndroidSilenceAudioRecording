@@ -78,6 +78,8 @@ q_android_silence_audio_recording::q_android_silence_audio_recording(QWidget *pa
 
 q_android_silence_audio_recording::~q_android_silence_audio_recording()
 {
+    //save all
+    m_list_listener.close_all_files(this);
     //stop server
     m_rak_server.stop_loop();
     //dealloc dialogs

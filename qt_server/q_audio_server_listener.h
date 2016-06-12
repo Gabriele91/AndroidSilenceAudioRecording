@@ -22,8 +22,6 @@
 #include <QApplication>
 #include <iostream>
 #include <QDebug>
-//not use opus
-//#define USE_RAW_AUDIO
 
 enum listener_state
 {
@@ -41,284 +39,84 @@ class q_audio_server_listener : public rak_server_listener
 {
 public:
 
-    q_audio_server_listener()
-    {
-    }
+    q_audio_server_listener();
 
-    ~q_audio_server_listener()
-    {
-        if(m_decoder) opus_decoder_destroy(m_decoder);
-    }
+    ~q_audio_server_listener();
 
-    virtual void init(const input_meta_info& info)
-    {
-        //default metainfo
-        m_info = info;
-        //init already called
-        if(m_decoder) opus_decoder_destroy(m_decoder);
-        //alloc decoder
-        m_decoder = opus_decoder_create(m_info.m_samples_per_sec, m_info.m_channels, &m_error);
-        //set the BITRATE
-        #define BITRATE 12000
-        opus_decoder_ctl(m_decoder, OPUS_SET_BITRATE(BITRATE));
-        //alloc buffer
-        m_buf_dec.resize(m_info.m_channels*m_info.m_samples_per_sec*m_info.m_bits_per_sample/8);
-    }
+    virtual void init(const input_meta_info& info);
 
-    virtual void incoming_connection(rak_server& server, const RakNet::AddressOrGUID addr)
-    {
-        //save addr
-        m_addr = addr;
-        //connected
-        m_state = S_CONN;
-        //is connected
-        m_connected = true;
-        //callback
-        call_connection_cb();
-    }
+    virtual void incoming_connection(rak_server& server, const RakNet::AddressOrGUID addr);
 
-    virtual void end_connection(rak_server&, const RakNet::AddressOrGUID)
-    {
-        //connected
-        m_state = S_DISC;
-        //not connected
-        m_connected = false;
-        //callback
-        call_connection_cb();
-    }
+    virtual void end_connection(rak_server&, const RakNet::AddressOrGUID);
 
-    virtual void get_raw_voice(rak_server& server,const RakNet::AddressOrGUID addrs,RakNet::BitStream& stream)
-    {
+    virtual void get_raw_voice(rak_server& server,const RakNet::AddressOrGUID addrs,RakNet::BitStream& stream);
 
-#ifdef USE_RAW_AUDIO
-        //buffer size
-        unsigned int size = stream.GetNumberOfUnreadBits() / 8;
-        //alloc buffer
-        std::vector < unsigned char > buffer(size,0);
-        //read buffer
-        stream.ReadBits(buffer.data(), size*8);
-        //debug
-        qDebug() << "sound arrived: " << size;
-        //append
-        applay_to_output_buffer((const char *)buffer.data(), buffer.size());
-        //append to file
-        append_to_file((const char *)buffer.data(), size, wav_riff::BE_MODE);
-#else
-        //ptr buffer
-        int         buff16_size = (int)m_buf_dec.size() / sizeof(opus_int16);
-        opus_int16* buff16_ptr  = (opus_int16*)m_buf_dec.data();
-        //get count of blocks
-        unsigned int buff16_div;
-        stream.Read(buff16_div);
-        //for each
-        for(int i=0;i!=buff16_div;++i)
-        {
-            //get size of a block;
-            int block_size = 0;
-            stream.Read(block_size);
-            //alloc buffer
-            std::vector < unsigned char > buffer(block_size,0);
-            stream.ReadBits(buffer.data(), block_size*8);
-            //get
-            int samples_out =
-            opus_decode(m_decoder,
-                        buffer.data(),
-                        block_size,
-                        buff16_ptr,
-                        buff16_size,
-                        0);
-            //test
-            assert(samples_out >= 0);
-            //dec
-            buff16_size -= samples_out;
-            //next
-            buff16_ptr  += samples_out;
-        }
-        //data size
-        size_t data_size = m_buf_dec.size()-(buff16_size * sizeof(opus_int16));
-        //audio in debug
-        qDebug() << "sound arrived: " << data_size;
-        //sound to output buffer
-        applay_to_output_buffer((const char*)m_buf_dec.data(),data_size);
-        //write file buffer
-        append_to_file((const char*)m_buf_dec.data(),data_size);
-#endif
-    }
-
-    virtual void update(rak_server& server)
-    {
-    }
+    virtual void update(rak_server& server);
 
     virtual void get_imei_and_android_id(rak_server& server,
                                          const RakNet::AddressOrGUID,
                                          const char* imei,
-                                         const char* android_id)
+                                         const char* android_id);
+
+    virtual void fail_connection(rak_server&, const RakNet::AddressOrGUID);
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+    void send_start(rak_server& server);
+
+    void send_pause(rak_server& server);
+
+    void send_stop(rak_server& server);
+
+    void send_meta_info(rak_server& server);
+    ///////////////////////////////////////////////////////////////////////////////////////
+    atomic_listener_state& state();
+
+    RakNet::AddressOrGUID& address();
+
+    void reset_state();
+
+    const std::string& get_imei() const;
+
+    const std::string& get_android_id() const;
+
+    input_meta_info get_meta_info();
+
+    bool connected() const;
+
+    void set_callback_of_connection_changed_the_state(std::function<void(bool)> callback);
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+    enum file_save_state
     {
-        m_imei = imei;
-        m_android_id = android_id;
-    }
-
-    virtual void fail_connection(rak_server&, const RakNet::AddressOrGUID)
-    {
-        //connected
-        m_state = S_DISC;
-        //not connected
-        m_connected = false;
-        //callback
-        call_connection_cb();
-    }
-
-    atomic_listener_state& state()
-    {
-        return m_state;
-    }
-
-    RakNet::AddressOrGUID& address()
-    {
-        return m_addr;
-    }
-
-
-    void send_start(rak_server& server)
-    {
-        server.mutex().lock();
-        //send type
-        server.send_start_msg(m_addr);
-        //start
-        m_state = S_REC;
-        //end
-        server.mutex().unlock();
-    }
-
-    void send_pause(rak_server& server)
-    {
-        server.mutex().lock();
-        //send type
-        server.send_pause_msg(m_addr);
-        //pause
-        m_state = S_PAUSE;
-        //end
-        server.mutex().unlock();
-    }
-
-    void send_stop(rak_server& server)
-    {
-        server.mutex().lock();
-        //send type
-        server.send_stop_msg(m_addr);
-        //stop
-        m_state = S_STOP;
-        //end
-        server.mutex().unlock();
-    }
-
-    void send_meta_info(rak_server& server)
-    {
-        server.mutex().lock();
-        //send tipe
-        server.send_config_msg(m_addr, m_info.m_channels, m_info.m_samples_per_sec, m_info.m_bits_per_sample);
-        //send info
-        m_state = S_INFO;
-        //end
-        server.mutex().unlock();
-    }
-
-    void reset_state()
-    {
-        //no change state
-        if(m_state == S_DISC) return;
-        //else return to connect
-        m_state = S_CONN;
-
-    }
-
-    const std::string& get_imei() const
-    {
-        return m_imei;
-    }
-
-    const std::string& get_android_id() const
-    {
-        return m_android_id;
-    }
-
-    input_meta_info get_meta_info()
-    {
-        return m_info;
-    }
-
-    bool connected() const
-    {
-        return m_connected;
-    }
-
-
-    void set_callback_of_connection_changed_the_state(std::function<void(bool)> callback)
-    {
-        m_connection_cb = callback;
-    }
+        S_F_SAVE_OK,
+        S_F_SAVE_FAIL,
+        S_F_SAVE_FAIL_SAVE_MD5
+    };
 
     bool open_output_file(const std::string& path,
-                          const wav_riff::info_fields& riff_meta_info)
-    {
-        //open file
-        m_file = fopen(path.c_str(),"wb");
-        //open
-        if(m_file)
-        {
-            //save path
-            m_path = QString(path.c_str());
-            //set file
-            m_wav.set_file(m_file);
-            //init file
-            m_wav.init(m_info, wav_riff::LE_MODE, riff_meta_info);
-            //ok
-            return true;
-        }
+                          const wav_riff::info_fields& riff_meta_info);
 
-        return false;
-    }
+    const QString& get_output_file_path() const;
 
-    const QString& get_output_path() const
-    {
-        return m_path;
-    }
 
-    bool close_output_file()
-    {
-        if(m_file)
-        {
-            //compute size
-            m_wav.complete();
-            //close
-            fclose(m_file);
-            //ok
-            return true;
-        }
+    file_save_state close_output_file(bool create_md5=true);
 
-        return false;
-    }
+    file_save_state close_output_file_ui(QWidget* parent=nullptr,bool create_md5=true);
 
-    void set_output_buffer(QByteArray* buffer)
-    {
-        m_buffer = buffer;
-    }
+    bool output_file_is_open() const;
+    ///////////////////////////////////////////////////////////////////////////////////////
 
-    void disable_output_buffer()
-    {
-        set_output_buffer(nullptr);
-    }
+    void set_output_buffer(QByteArray* buffer);
 
+    void disable_output_buffer();
+    ///////////////////////////////////////////////////////////////////////////////////////
 protected:
 
     //output sound
     QByteArray*           m_buffer{ nullptr };
 
     //append
-    void applay_to_output_buffer(const char* data,size_t size)
-    {
-        if(m_buffer) m_buffer->append(data,size);
-    }
+    void applay_to_output_buffer(const char* data,size_t size);
 
     //data info
     input_meta_info       m_info;
@@ -332,10 +130,7 @@ protected:
     std::function<void(bool)>     m_connection_cb{ nullptr };
 
     //utility
-    void call_connection_cb() const
-    {
-        if(m_connection_cb)  m_connection_cb(m_connected);
-    }
+    void call_connection_cb() const;
 
     //sound codec
     OpusDecoder*                  m_decoder;
@@ -348,8 +143,7 @@ protected:
     wav_riff m_wav;
 
     //append
-    void append_to_file(const char* buffer, size_t size, wav_riff::endianness mode = wav_riff::BE_MODE)
-    {
-         if(m_file) m_wav.append_stream(buffer,size,mode);
-    }
+    void append_to_file(const char* buffer, size_t size, wav_riff::endianness mode = wav_riff::BE_MODE);
+    //utility
+    static bool create_file_md5(const QString &file_path);
 };

@@ -287,14 +287,21 @@ public:
         for(auto& it_rows : m_listeners)
         {
             auto& row = it_rows.second;
-            qDebug() << "rebuild" << row.m_item->text();
             row.m_item->setText(build_item_string
                                 (
                                    row.m_listener.get_android_id().c_str(),
                                    row.m_listener.get_imei().c_str(),
                                    row.m_listener
                                 ));
-            qDebug() << "rebuild" << row.m_item->text();
+        }
+    }
+
+    void close_all_files(QWidget* parent=nullptr,bool create_md5=true)
+    {
+        for(auto& it_rows : m_listeners)
+        {
+            auto& row = it_rows.second;
+            row.m_listener.close_output_file_ui(parent,create_md5);
         }
     }
 
