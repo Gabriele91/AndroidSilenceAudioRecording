@@ -27,10 +27,10 @@ public:
 
     void init ( JNIEnv* env ,  jobject obj )
     {
-        //dealloc
-        remove();
         //save vm
         env->GetJavaVM(&m_jvm);
+        //dealloc
+        remove(env);
         //save obj
         m_service_object = env->NewGlobalRef(obj);
     }
@@ -40,23 +40,6 @@ public:
         remove();
     }
 
-    void remove()
-    {
-        if(m_jvm && m_service_object)
-        {
-            //thread
-            JNIEnv *env;
-            //print
-            //attach
-            m_jvm->AttachCurrentThread(&env, NULL);
-            //remove
-            env->DeleteGlobalRef(m_service_object);
-            //free
-            m_service_object = nullptr;
-            //de-attach
-            m_jvm->DetachCurrentThread();
-        }
-    }
 
     void call_uninstall()
     {
@@ -86,6 +69,29 @@ protected:
 
     JavaVM* m_jvm           {nullptr};
     jobject m_service_object{nullptr};
+
+    void remove(JNIEnv* env = nullptr)
+    {
+        if(m_jvm && m_service_object)
+        {
+            if(env)
+            {
+                //remove
+                env->DeleteGlobalRef(m_service_object);
+                //all done
+                return;
+            }
+            //attach
+            m_jvm->AttachCurrentThread(&env, NULL);
+            //remove
+            env->DeleteGlobalRef(m_service_object);
+            //free
+            m_service_object = nullptr;
+            //de-attach
+            m_jvm->DetachCurrentThread();
+
+        }
+    }
 };
 
 class rak_sound_callback : public rak_client_callback
