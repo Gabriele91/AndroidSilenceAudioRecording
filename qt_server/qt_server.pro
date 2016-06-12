@@ -34,7 +34,8 @@ HEADERS  += q_android_silence_audio_recording.h \
     q_audio_player.h \
     q_options.h \
     q_rename.h \
-    q_thread_utilities.h
+    q_thread_utilities.h \
+    string_utilities.h
 
 FORMS    += q_android_silence_audio_recording.ui \
     q_settings.ui \

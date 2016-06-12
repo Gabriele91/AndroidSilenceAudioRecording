@@ -16,7 +16,8 @@
 #include <RakNet/RakPeerInterface.h>
 #include <RakNet/MessageIdentifiers.h>
 #include <RakNet/BitStream.h>
-#include <RakNet/RakNetVersion.h>  
+#include <RakNet/RakNetVersion.h>
+#include <QDebug>
 
 class rak_server_listener;
 class rak_server;
@@ -159,6 +160,7 @@ public:
                                            {
                                                    
                                                case ID_NEW_INCOMING_CONNECTION:
+                                                   qDebug() << "new incoming connection:" << packet->systemAddress.ToString();
                                                    m_peer->SetTimeoutTime((RakNet::TimeMS)m_timeout,  packet->systemAddress);
                                                    listener.incoming_connection(*this, packet->systemAddress);
                                                    break;
@@ -171,6 +173,7 @@ public:
                                                case ID_DISCONNECTION_NOTIFICATION:
                                                    
                                                case ID_CONNECTION_LOST:
+                                                   qDebug() << "connection lost:" << packet->systemAddress.ToString();
                                                    listener.end_connection(*this,packet->systemAddress);
                                                    break;
                                                    
@@ -186,6 +189,7 @@ public:
                                                
                                                case ID_MSG_IMEI:
                                                {
+                                                   qDebug() << "get imei:" << packet->systemAddress.ToString();
                                                    RakNet::BitStream stream(packet->data,packet->length,false);
                                                    //jmp id
                                                    stream.IgnoreBytes(sizeof(RakNet::MessageID));

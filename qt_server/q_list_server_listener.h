@@ -15,6 +15,7 @@
 #include <QListWidgetItem>
 #include <q_audio_server_listener.h>
 #include <q_thread_utilities.h>
+#include <string_utilities.h>
 
 class q_list_server_listener : public rak_server_listener
 {
@@ -28,7 +29,9 @@ public:
         QListWidgetItem*         m_item;
     };
 
-    using map_android_id = std::map< std::string , std::string > ;
+    using map_android_id    = std::map< std::string , std::string > ;
+    using id_iterator       = map_android_id::iterator ;
+    using id_const_iterator = map_android_id::const_iterator ;
     using map_listeners  = std::map< std::string , row_map_listener > ;
     using iterator       = map_listeners::iterator ;
     using const_iterator = map_listeners::const_iterator ;
@@ -70,7 +73,24 @@ public:
                                          const char* c_android_id)
     {
         std::string android_id(c_android_id);
-        //save android id
+        //get it
+        auto it_android_id = get_addrs_from_android_id(android_id);
+        //change
+        if(it_android_id        != m_android_ids.end() &&
+           it_android_id->first != addrs.ToString())
+        {
+            auto values = std::split(it_android_id->first,'|');
+            //to uid
+            RakNet::AddressOrGUID addrs_or_uid;
+            //add
+            if(values.size() > 0) addrs_or_uid.systemAddress.FromString(values[0].c_str());
+            if(values.size() > 1) addrs_or_uid.rakNetGuid.FromString(values[1].c_str());
+            //end
+            end_connection(server,addrs_or_uid);
+            //remove
+            m_android_ids.erase(it_android_id);
+        }
+        //save new addrs android id
         add_android_id_into_map(addrs,android_id);
         //get row
         row_map_listener& row = m_listeners[android_id];
@@ -118,7 +138,6 @@ public:
     {
         //listener
         auto it_listeners = get_row_from_addrs(addrs);
-        qDebug() << "voice from:"<< addrs.ToString();
         //get row;
         if(it_listeners != m_listeners.end())
         {
@@ -223,14 +242,54 @@ public:
         else std::string();
     }
 
+
     void add_android_id_into_map(const std::string& addrs,const std::string& android_id)
     {
-        m_android_ids.insert({addrs,android_id});
+        m_android_ids[addrs]=android_id;
     }
+
 
     void add_android_id_into_map(const RakNet::AddressOrGUID& addrs,const std::string& android_id)
     {
-        m_android_ids.insert({addrs.ToString(),android_id});
+       add_android_id_into_map(addrs.ToString(),android_id);
+    }
+
+
+    id_const_iterator get_addrs_from_android_id(const std::string& android_id) const
+    {
+        for(id_const_iterator
+            it = m_android_ids.begin();
+            it!= m_android_ids.end();
+            it++)
+        {
+            if(it->second == android_id)
+            {
+                return it;
+            }
+        }
+
+        return m_android_ids.end();
+    }
+
+
+
+    bool exist_but_diff_addrs(const std::string& addrs,
+                              const std::string& android_id)
+    {
+        for(auto it:m_android_ids)
+        {
+            if(it.second == android_id && it.first != addrs)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool exist_but_diff_addrs(const RakNet::AddressOrGUID& addrs,
+                              const std::string& android_id)
+    {
+        return exist_but_diff_addrs(addrs,android_id);
     }
 
     iterator get_row_from_addrs(const std::string& addrs)
