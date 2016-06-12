@@ -83,7 +83,10 @@ void q_android_silence_audio_recording::closeEvent(QCloseEvent *event)
 
         if(QMessageBox::question(this,
                                  "AndroidSilenceAudioRecording",
-                                 "Some recording are open, do you want to close all??",
+                                 "Attention! "
+                                 "You are still recording, "
+                                 "do you really want to close the application?\n"
+                                 "(Note: files will be saved on exit)",
                                  QMessageBox::Yes|
                                  QMessageBox::No) == QMessageBox::Yes)
         {
@@ -169,6 +172,21 @@ void q_android_silence_audio_recording::options()
     if(ret_value = QMessageBox::Ok &&
        m_options->get_port() != m_rak_server.get_init_port() )
     {
+        if(m_list_listener.some_file_are_open() &&
+          (QMessageBox::question(this,
+                                 "AndroidSilenceAudioRecording",
+                                 "Attention! "
+                                 "You are still recording, "
+                                 "do you really want to change the server port?\n"
+                                 "(Note: files will be saved on change)",
+                                 QMessageBox::Yes|
+                                 QMessageBox::No) != QMessageBox::Yes))
+        {
+            //reset port
+            m_options->set_port(m_rak_server.get_init_port());
+            //return
+            return;
+        }
         //destoy all
         m_rak_server.shutdown();
         //clear list
