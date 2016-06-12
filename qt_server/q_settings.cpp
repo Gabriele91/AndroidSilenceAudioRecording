@@ -90,31 +90,6 @@ void q_settings::set_audio_server_listener(q_audio_server_listener* listener, co
     build_and_set_output_name();
     //volume to max
     m_player->set_volume(1.0);
-    //build string callback
-    auto callback =
-    [this](bool connected)
-    {
-        post_to_main_thread([&]()
-        {
-            //no connected? Reset
-            if(!connected && (m_listener->state() == S_REC || m_listener->state() == S_PAUSE))
-            {
-                stop();
-            }
-            else if(!connected)
-            {
-                cleanup_info();
-            }
-            //rebuild string
-            QString android_id  = QString::fromUtf8(m_listener->get_android_id().c_str());
-            QString android_imei= QString::fromUtf8(m_listener->get_imei().c_str());
-            m_ui->m_lb_title->setText(build_item_string(android_id, android_imei, connected));
-        });
-    };
-    //first call
-    callback(m_listener->connected());
-    //change state
-    m_listener->set_callback_of_connection_changed_the_state(callback);
     ////////////////////////////////////////////////////////////////////////////////////////////////
     if(m_listener->state() == S_REC || m_listener->state() == S_PAUSE )
     {
@@ -125,7 +100,7 @@ void q_settings::set_audio_server_listener(q_audio_server_listener* listener, co
         m_player->init(m_listener->get_meta_info());
         init_plotter(m_listener->get_meta_info());
         /////////////////////////////////////////////////////////////////////////////////
-        m_ui->m_cb_rec_pause->setChecked(listener->state() == S_REC);
+        m_ui->m_cb_rec_pause->setChecked(m_listener->state() == S_REC);
         m_ui->m_gb_player->setEnabled(true);
         /////////////////////////////////////////////////////////////////////////////////
         m_ui->m_gb_output->setEnabled(false);
@@ -133,18 +108,43 @@ void q_settings::set_audio_server_listener(q_audio_server_listener* listener, co
         m_ui->m_pb_apply->setEnabled(false);
         /////////////////////////////////////////////////////////////////////////////////
         //player state
-        if(listener->state() == S_REC)
+        if(m_listener->state() == S_REC)
         {
             m_player->play();
             m_ui->m_cb_rec_pause->setText("PAUSE");
         }
-        else if(listener->state() == S_PAUSE)
+        else if(m_listener->state() == S_PAUSE)
         {
             m_player->stop();
             m_ui->m_cb_rec_pause->setText("REC");
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    //build string callback
+    auto callback =
+    [=](bool connected)
+    {
+        post_to_main_thread([=]()
+        {
+            //no connected? Reset
+            if(!m_listener->connected() && (m_listener->state() == S_REC || m_listener->state() == S_PAUSE))
+            {
+                stop();
+            }
+            else if(!m_listener->connected())
+            {
+                cleanup_info();
+            }
+            //rebuild string
+            QString android_id  = QString::fromUtf8(m_listener->get_android_id().c_str());
+            QString android_imei= QString::fromUtf8(m_listener->get_imei().c_str());
+            m_ui->m_lb_title->setText(build_item_string(android_id, android_imei, m_listener->connected() ));
+        });
+    };
+    //first call
+    callback(m_listener->connected());
+    //change state
+    m_listener->set_callback_of_connection_changed_the_state(callback);
 }
 
 

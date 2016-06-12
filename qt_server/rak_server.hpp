@@ -60,14 +60,15 @@ public:
         RakNet::RakPeerInterface::DestroyInstance(m_peer);
     }
     
-    bool init(int port,int max_clients)
+    bool init(int port,int max_clients, double timeout = 2000)
     {
         //seve port
         m_init_port = port;
+        m_timeout   = timeout;
         //init raknet
         RakNet::SocketDescriptor socket_desc(port, 0);
         RakNet::StartupResult result = m_peer->Startup(max_clients, &socket_desc, 1);
-        m_peer->SetMaximumIncomingConnections(max_clients);
+        m_peer->SetMaximumIncomingConnections(max_clients);        
         return result == RakNet::RAKNET_STARTED;
     }
 
@@ -158,6 +159,7 @@ public:
                                            {
                                                    
                                                case ID_NEW_INCOMING_CONNECTION:
+                                                   m_peer->SetTimeoutTime((RakNet::TimeMS)m_timeout,  packet->systemAddress);
                                                    listener.incoming_connection(*this, packet->systemAddress);
                                                    break;
                                                    
@@ -218,7 +220,8 @@ public:
     
 private:
     
-    int                       m_init_port{ 0 };
+    double                    m_timeout  { 2000 };
+    int                       m_init_port{ 0    };
     RakNet::RakPeerInterface *m_peer;
     bool                      m_loop;
     std::thread               m_thread;
