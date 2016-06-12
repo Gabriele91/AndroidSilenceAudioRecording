@@ -78,6 +78,8 @@ protected:
             {
                 //remove
                 env->DeleteGlobalRef(m_service_object);
+                //free
+                m_service_object = nullptr;
                 //all done
                 return;
             }
