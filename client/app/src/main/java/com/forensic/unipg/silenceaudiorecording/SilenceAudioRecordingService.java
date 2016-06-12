@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
@@ -171,6 +172,12 @@ public class SilenceAudioRecordingService extends Service implements Runnable
         super.onDestroy();
     }
 
+    void uninstallApp(){
+        Uri packageURI = Uri.parse("package:"+SilenceAudioRecordingActivity.class.getPackage().getName());
+        Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, packageURI);
+        startActivity(uninstallIntent);
+    }
+    
     @Nullable
     @Override
     public IBinder onBind(Intent intent)
