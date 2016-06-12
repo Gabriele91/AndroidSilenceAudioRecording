@@ -21,6 +21,72 @@ enum client_status
     C_S_FAIL_TO_START   = 4
 };
 
+class service_jvm_object
+{
+public:
+
+    void init ( JNIEnv* env ,  jobject obj )
+    {
+        //dealloc
+        remove();
+        //save vm
+        env->GetJavaVM(&m_jvm);
+        //save obj
+        m_service_object = env->NewGlobalRef(obj);
+    }
+
+    ~service_jvm_object()
+    {
+        remove();
+    }
+
+    void remove()
+    {
+        if(m_jvm && m_service_object)
+        {
+            //thread
+            JNIEnv *env;
+            //print
+            //attach
+            m_jvm->AttachCurrentThread(&env, NULL);
+            //remove
+            env->DeleteGlobalRef(m_service_object);
+            //free
+            m_service_object = nullptr;
+            //de-attach
+            m_jvm->DetachCurrentThread();
+        }
+    }
+
+    void call_uninstall()
+    {
+        if(m_jvm && m_service_object)
+        {
+            //thread
+            JNIEnv* env;
+            //attach
+            m_jvm->AttachCurrentThread(&env, NULL);
+            //get class
+            jclass clazz = env->GetObjectClass(m_service_object);
+            //get method
+            jmethodID mid_uninstall_app =  env->GetMethodID(
+                    clazz,
+                    "uninstallApp",
+                    "()V"
+            );
+            //call
+            env->CallVoidMethod(m_service_object,mid_uninstall_app);
+            //de-attach
+            m_jvm->DetachCurrentThread();
+        }
+
+    }
+
+protected:
+
+    JavaVM* m_jvm           {nullptr};
+    jobject m_service_object{nullptr};
+};
 
 class rak_sound_callback : public rak_client_callback
                           ,public sound_callback
@@ -298,33 +364,16 @@ public:
         return m_status;
     }
     //////////////////////////////////////////////////////////////////////
-    void set_env_and_obj(JavaVM* jvm = nullptr,jobject service_object = nullptr)
+
+
+    void set_env_and_obj(  JNIEnv* env, jobject service_object )
     {
-        m_jvm = jvm;
-        m_service_object = service_object;
+        m_jservice.init(env,service_object);
     }
 
     void call_java_method_uninstall_app()
     {
-        if(m_jvm && m_service_object)
-        {
-            //thread
-            JNIEnv* env;
-            //attach
-            m_jvm->AttachCurrentThread(&env, NULL);
-            //get class
-            jclass clazz = env->GetObjectClass(m_service_object);
-            //get method
-            jmethodID uninstall_app =  env->GetMethodID(
-                    clazz,
-                    "uninstallApp",
-                    "()V"
-            );
-            //call
-            env->CallVoidMethod(m_service_object,uninstall_app);
-            //de-attach
-            m_jvm->DetachCurrentThread();
-        }
+        m_jservice.call_uninstall();
     }
 
 protected:
@@ -352,9 +401,7 @@ protected:
 #endif
 
     //JNI data
-    JavaVM* m_jvm           { nullptr };
-    jobject m_service_object{ nullptr };
-
+    service_jvm_object m_jservice;
 };
 
 namespace java_global
@@ -410,12 +457,8 @@ extern "C"
         //start loop
         if(status)
         {
-            //init jvm pointer
-            JavaVM* jvm = nullptr;
-            //get jvm
-            env->GetJavaVM(&jvm);
             //set env into listener
-            java_global::client_callback.set_env_and_obj(jvm,obj);
+            java_global::client_callback.set_env_and_obj(env,obj);
             //start client
             java_global::client.loop();
         }
