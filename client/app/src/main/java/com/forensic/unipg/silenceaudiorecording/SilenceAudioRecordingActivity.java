@@ -57,7 +57,7 @@ public class SilenceAudioRecordingActivity extends AppCompatActivity {
     private boolean isLauncherIconVisible() {
         int enabledSetting = getPackageManager()
                 .getComponentEnabledSetting(LAUNCHER_COMPONENT_NAME);
-        return enabledSetting == PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
+        return enabledSetting != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
     }
 
     void createUI()
@@ -108,7 +108,7 @@ public class SilenceAudioRecordingActivity extends AppCompatActivity {
         });
         //get app icon state
         cb_hide_app_icon = (CheckBox)findViewById(R.id.cb_hide_icon);
-        cb_hide_app_icon.setChecked(isLauncherIconVisible());
+        cb_hide_app_icon.setChecked(!isLauncherIconVisible());
         //attach listener
         cb_hide_app_icon.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
         {
