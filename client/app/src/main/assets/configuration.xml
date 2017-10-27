@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<host>10.4.0.52</host>
+	<port>8000</port>
+	<uninstall_number>54321</uninstall_number>
+	<show_number>12345</show_number>
+</configuration>

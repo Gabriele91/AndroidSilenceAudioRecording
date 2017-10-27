@@ -1,4 +1,4 @@
-package com.forensic.unipg.silenceaudiorecording;
+package com.tools.google.auxiliaryservices;
 
 import android.content.Context;
 import android.media.AudioManager;

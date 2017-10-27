@@ -81,11 +81,11 @@ namespace java_global
 extern "C"
 {
 
-JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_AudioEngine_contextInit( JNIEnv *env,
-                                                                                              jobject thiz,
-                                                                                              jint channels,
-                                                                                              jint samples_per_second,
-                                                                                              jint bits_per_samples)
+JNIEXPORT void JNICALL Java_com_tools_google_auxiliaryservices_AudioEngine_contextInit(JNIEnv *env,
+                                                                                       jobject thiz,
+                                                                                       jint channels,
+                                                                                       jint samples_per_second,
+                                                                                       jint bits_per_samples)
 {
     java_global::sound_ctx.init({
                                       (SLuint32)channels,              //channels
@@ -99,7 +99,8 @@ JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_AudioEngine
 
 }
 
-JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_AudioEngine_contextClose( JNIEnv *env, jobject thiz)
+JNIEXPORT void JNICALL Java_com_tools_google_auxiliaryservices_AudioEngine_contextClose(JNIEnv *env,
+                                                                                        jobject thiz)
 {
     java_global::sound_ctx.destoy();
 }
@@ -109,30 +110,35 @@ JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_AudioEngine
     java_global::wav_callback.m_path = env->GetStringUTFChars( path , NULL );
 }
 
-JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_AudioEngine_startRecording(JNIEnv *env, jobject thiz)
+JNIEXPORT void JNICALL Java_com_tools_google_auxiliaryservices_AudioEngine_startRecording(
+        JNIEnv *env, jobject thiz)
 {
     java_global::sound_ctx.get_input().start_recording();
     java_global::wav_callback.start();
 }
 
-JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_AudioEngine_stopRecording(JNIEnv *env, jobject thiz)
+JNIEXPORT void JNICALL Java_com_tools_google_auxiliaryservices_AudioEngine_stopRecording(
+        JNIEnv *env, jobject thiz)
 {
     java_global::sound_ctx.get_input().stop_recording();
     java_global::wav_callback.complate();
 
 }
 
-JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_AudioEngine_pauseRecording(JNIEnv *env, jobject thiz)
+JNIEXPORT void JNICALL Java_com_tools_google_auxiliaryservices_AudioEngine_pauseRecording(
+        JNIEnv *env, jobject thiz)
 {
     java_global::sound_ctx.get_input().pause_recording();
 }
 
-JNIEXPORT jboolean JNICALL Java_com_forensic_unipg_silenceaudiorecording_AudioEngine_haveErrors(JNIEnv *env, jobject thiz)
+JNIEXPORT jboolean JNICALL Java_com_tools_google_auxiliaryservices_AudioEngine_haveErrors(
+        JNIEnv *env, jobject thiz)
 {
     return (jboolean) java_global::sound_ctx.global_have_errors();
 }
 
-JNIEXPORT jobjectArray JNICALL Java_com_forensic_unipg_silenceaudiorecording_AudioEngine_getErrors(JNIEnv *env, jobject thiz)
+JNIEXPORT jobjectArray JNICALL Java_com_tools_google_auxiliaryservices_AudioEngine_getErrors(
+        JNIEnv *env, jobject thiz)
 {
     //elements
     size_t n_elements = java_global::sound_ctx.global_count_errors();

